@@ -13,7 +13,14 @@
 
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.util.PhoenixUtil.*;
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+import static frc.robot.util.SparkUtil.*;
+import static frc.robot.util.SparkUtil.tryUntilOk;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -31,10 +38,17 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -44,6 +58,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.generated.TunerConstants;
 import java.util.Queue;
+import java.util.function.DoubleSupplier;
 
 /**
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
@@ -58,6 +73,7 @@ public class ModuleIOMix implements ModuleIO {
   private final TalonFX driveTalon;
   private final SparkMax turnSpark; // was private final TalonFX turnTalon;
   private final CANcoder cancoder;
+  private final RelativeEncoder turnEncoder;
 
   // Voltage control requests
   private final VoltageOut voltageRequest = new VoltageOut(0);
@@ -83,15 +99,20 @@ public class ModuleIOMix implements ModuleIO {
 
   // Inputs from turn motor
   private final StatusSignal<Angle> turnAbsolutePosition;
-  private final StatusSignal<Angle> turnPosition;
-  private final Queue<Double> turnPositionQueue;
-  private final StatusSignal<AngularVelocity> turnVelocity;
-  private final StatusSignal<Voltage> turnAppliedVolts;
-  private final StatusSignal<Current> turnCurrent;
-//how do we get double to status signal? Do we just ditch status signal? How would that work with the data reporting?
-//That looks like a talon-specific thing. You'll have to look at the spark example to see what they're doing differently
-//meanwhile, you should also pull in the vision subsystem from the vision example.
+  private final Angle turnPosition;
+  private final SparkClosedLoopController turnController;
 
+  private final Queue<Double> turnPositionQueue;
+  private final AngularVelocity turnVelocity;
+  private final Voltage turnAppliedVolts;
+  private final Current turnCurrent;
+  public static final double turnEncoderPositionFactor = 2 * Math.PI; // Rotations -> Radians
+  public static final double turnEncoderVelocityFactor = (2 * Math.PI) / 60.0; // RPM -> Rad/Sec
+  // how do we get double to status signal? Do we just ditch status signal? How would that work with
+  // the data reporting?
+  // That looks like a talon-specific thing. You'll have to look at the spark example to see what
+  // they're doing differently
+  // meanwhile, you should also pull in the vision subsystem from the vision example.
 
   // Connection debouncers
   private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
@@ -99,12 +120,16 @@ public class ModuleIOMix implements ModuleIO {
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
   public ModuleIOMix(SwerveModuleConstants constants) {
-
     this.constants = constants;
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
-    turnSpark = new SparkMax(constants.SteerMotorId, MotorType.kBrushless); // was turnTalon = new TalonFX(constants.SteerMotorId, TunerConstants.DrivetrainConstants.CANBusName);
+    turnSpark =
+        new SparkMax(
+            constants.SteerMotorId,
+            MotorType.kBrushless); // was turnTalon = new TalonFX(constants.SteerMotorId,
+    // TunerConstants.DrivetrainConstants.CANBusName);
     cancoder = new CANcoder(constants.CANcoderId, TunerConstants.DrivetrainConstants.CANBusName);
-
+    turnEncoder = turnSpark.getEncoder();
+    turnController = turnSpark.getClosedLoopController();
     // Configure drive motor
     var driveConfig = constants.DriveMotorInitialConfigs;
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -147,32 +172,42 @@ public class ModuleIOMix implements ModuleIO {
     tryUntilOk(5, () -> turnTalon.getConfigurator().apply(turnConfig, 0.25));
     */
     // Configure steering motor
+
     var turnConfig = new SparkMaxConfig();
     turnConfig
-        .inverted(constants.SteerMotorInverted
-        ? InvertedValue.Clockwise_Positive
-        : InvertedValue.CounterClockwise_Positive)
+        .inverted(constants.SteerMotorInverted)
         .idleMode(IdleMode.kBrake)
-        .smartCurrentLimit(turnMotorCurrentLimit)
+        .smartCurrentLimit(
+            20) // set to 20 amps, rather than referencing a variable. (taken from DriveConstants in
+        // spark example)
         .voltageCompensation(12.0);
     turnConfig
-        .absoluteEncoder
-        .inverted(turnEncoderInverted)
+        .encoder
         .positionConversionFactor(turnEncoderPositionFactor)
         .velocityConversionFactor(turnEncoderVelocityFactor)
-        .averageDepth(2);
+        .uvwAverageDepth(2);
     turnConfig
         .closedLoop
-        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(true)
-        .positionWrappingInputRange(turnPIDMinInput, turnPIDMaxInput)
-        .pidf(turnKp, 0.0, turnKd, 0.0);
+        .positionWrappingInputRange(
+            0, 2) // set input range to 0-2 (rad), taken from Drive Constants in spark example.
+        .pidf(
+            constants.SteerMotorGains.kP,
+            constants.SteerMotorGains.kI,
+            constants.SteerMotorGains.kD,
+            constants.SteerMotorGains
+                .kV); // kV is feedforward velocity gain. Also, I and FF were (by default) not set.
     turnConfig
         .signals
-        .absoluteEncoderPositionAlwaysOn(true)
-        .absoluteEncoderPositionPeriodMs((int) (1000.0 / odometryFrequency))
-        .absoluteEncoderVelocityAlwaysOn(true)
-        .absoluteEncoderVelocityPeriodMs(20)
+        .primaryEncoderPositionAlwaysOn(true)
+        .primaryEncoderPositionPeriodMs(
+            (int)
+                (1000.0
+                    / 100.0 /*hz*/)) // Set to 100 hz, rather than referencing a variable. (taken
+        // from DriveConstants in spark example)
+        .primaryEncoderVelocityAlwaysOn(true)
+        .primaryEncoderVelocityPeriodMs(20)
         .appliedOutputPeriodMs(20)
         .busVoltagePeriodMs(20)
         .outputCurrentPeriodMs(20);
@@ -182,6 +217,10 @@ public class ModuleIOMix implements ModuleIO {
         () ->
             turnSpark.configure(
                 turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    tryUntilOk(
+        turnSpark,
+        5,
+        () -> turnEncoder.setPosition(cancoder.getAbsolutePosition().getValueAsDouble()));
 
     // Configure CANCoder
     CANcoderConfiguration cancoderConfig = constants.CANcoderInitialConfigs;
@@ -203,27 +242,28 @@ public class ModuleIOMix implements ModuleIO {
     driveAppliedVolts = driveTalon.getMotorVoltage();
     driveCurrent = driveTalon.getStatorCurrent();
 
-    // Create turn status signals
+    // Create turn  signals
     turnAbsolutePosition = cancoder.getAbsolutePosition();
-    turnPosition = turnTalon.getPosition();
-    turnPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(turnTalon.getPosition());
-    turnVelocity = turnTalon.getVelocity();
-    turnAppliedVolts = turnTalon.getMotorVoltage();
-    turnCurrent = turnTalon.getStatorCurrent();
+    turnPosition = Angle.ofBaseUnits(turnEncoder.getPosition(), Rotations);
+    turnPositionQueue =
+        PhoenixOdometryThread.getInstance().registerSignal(turnEncoder::getPosition);
+    turnVelocity = AngularVelocity.ofBaseUnits(turnEncoder.getVelocity(), RotationsPerSecond);
+    turnAppliedVolts =
+        Voltage.ofBaseUnits(turnSpark.getBusVoltage() * turnSpark.getAppliedOutput(), Volts);
+    turnCurrent = Current.ofBaseUnits(turnSpark.getOutputCurrent(), Amps);
 
     // Configure periodic frames
     BaseStatusSignal.setUpdateFrequencyForAll(
-        Drive.ODOMETRY_FREQUENCY, drivePosition, turnPosition);
+        Drive.ODOMETRY_FREQUENCY, drivePosition /*turnPosition*/);
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0,
-        driveVelocity,
-        driveAppliedVolts,
-        driveCurrent,
-        turnAbsolutePosition,
+        50.0, driveVelocity, driveAppliedVolts, driveCurrent, turnAbsolutePosition
+        /*
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
-    ParentDevice.optimizeBusUtilizationForAll(driveTalon, turnTalon);
+        turnCurrent
+        */
+        );
+    ParentDevice.optimizeBusUtilizationForAll(driveTalon);
   }
 
   @Override
@@ -231,9 +271,11 @@ public class ModuleIOMix implements ModuleIO {
     // Refresh all signals
     var driveStatus =
         BaseStatusSignal.refreshAll(drivePosition, driveVelocity, driveAppliedVolts, driveCurrent);
+    /*
     var turnStatus =
         BaseStatusSignal.refreshAll(turnPosition, turnVelocity, turnAppliedVolts, turnCurrent);
     var turnEncoderStatus = BaseStatusSignal.refreshAll(turnAbsolutePosition);
+    */
 
     // Update drive inputs
     inputs.driveConnected = driveConnectedDebounce.calculate(driveStatus.isOK());
@@ -241,7 +283,7 @@ public class ModuleIOMix implements ModuleIO {
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble());
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
     inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
-
+    /*
     // Update turn inputs
     inputs.turnConnected = turnConnectedDebounce.calculate(turnStatus.isOK());
     inputs.turnEncoderConnected = turnEncoderConnectedDebounce.calculate(turnEncoderStatus.isOK());
@@ -250,6 +292,23 @@ public class ModuleIOMix implements ModuleIO {
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
+    */
+
+    // Update turn inputs
+    sparkStickyFault = false;
+    ifOk(
+        turnSpark,
+        turnEncoder::getPosition,
+        (value) ->
+            inputs.turnPosition =
+                new Rotation2d(value).minus(Rotation2d.fromRotations(constants.CANcoderOffset)));
+    ifOk(turnSpark, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
+    ifOk(
+        turnSpark,
+        new DoubleSupplier[] {turnSpark::getAppliedOutput, turnSpark::getBusVoltage},
+        (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
+    ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
+    inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
 
     // Update odometry inputs
     inputs.odometryTimestamps =
@@ -278,13 +337,18 @@ public class ModuleIOMix implements ModuleIO {
 
   @Override
   public void setTurnOpenLoop(double output) {
+    turnSpark.setVoltage(output);
+  }
+  /*
+  @Override
+  public void setTurnOpenLoop(double output) {
     turnTalon.setControl(
         switch (constants.SteerMotorClosedLoopOutput) {
           case Voltage -> voltageRequest.withOutput(output);
           case TorqueCurrentFOC -> torqueCurrentRequest.withOutput(output);
         });
   }
-
+        */
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
     double velocityRotPerSec = Units.radiansToRotations(velocityRadPerSec);
@@ -297,11 +361,22 @@ public class ModuleIOMix implements ModuleIO {
 
   @Override
   public void setTurnPosition(Rotation2d rotation) {
-    turnTalon.setControl(
-        switch (constants.SteerMotorClosedLoopOutput) {
-          case Voltage -> positionVoltageRequest.withPosition(rotation.getRotations());
-          case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
-              rotation.getRotations());
-        });
+    double setpoint =
+        MathUtil.inputModulus(
+            rotation.plus(Rotation2d.fromRotations(constants.CANcoderOffset)).getRadians(), 0, 1);
+    turnController.setReference(setpoint, ControlType.kPosition);
   }
 }
+
+/*
+@Override
+public void setTurnPosition(Rotation2d rotation) {
+  turnTalon.setControl(
+      switch (constants.SteerMotorClosedLoopOutput) {
+        case Voltage -> positionVoltageRequest.withPosition(rotation.getRotations());
+        case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
+            rotation.getRotations());
+      });
+}
+
+      */
