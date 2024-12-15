@@ -39,13 +39,6 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
-import static frc.robot.subsystems.vision.VisionConstants.*;
-import frc.robot.subsystems.drive.DemoDrive;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -55,8 +48,6 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Vision vision;
-  private final DemoDrive drive = new DemoDrive(); // Demo drive subsystem, sim only
   private final Vision vision;
   //private final DemoDrive drive = new DemoDrive(); // Demo drive subsystem, sim only
 
@@ -78,17 +69,6 @@ public class RobotContainer {
                 new ModuleIOMix(TunerConstants.FrontRight),
                 new ModuleIOMix(TunerConstants.BackLeft),
                 new ModuleIOMix(TunerConstants.BackRight));
-
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOLimelight(camera0Name, drive::getRotation),
-                new VisionIOLimelight(camera1Name, drive::getRotation));
-        // vision =
-        //     new Vision(
-        //         demoDrive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        //         new VisionIOPhotonVision(camera1Name, robotToCamera1));
 
         //vision =
         //    new Vision(
