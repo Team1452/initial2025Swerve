@@ -25,6 +25,7 @@ import static frc.robot.util.SparkUtil.tryUntilOk;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
@@ -67,7 +68,9 @@ import java.util.function.DoubleSupplier;
  * <p>Device configuration and other behaviors not exposed by TunerConstants can be customized here.
  */
 public class ModuleIOMix implements ModuleIO {
-  private final SwerveModuleConstants constants;
+  private final SwerveModuleConstants<
+          TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
+      constants;
 
   // Hardware objects
   private final TalonFX driveTalon;
@@ -119,7 +122,9 @@ public class ModuleIOMix implements ModuleIO {
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
-  public ModuleIOMix(SwerveModuleConstants constants) {
+  public ModuleIOMix(
+      SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
+          constants) {
     this.constants = constants;
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
     turnSpark =
@@ -127,7 +132,7 @@ public class ModuleIOMix implements ModuleIO {
             constants.SteerMotorId,
             MotorType.kBrushless); // was turnTalon = new TalonFX(constants.SteerMotorId,
     // TunerConstants.DrivetrainConstants.CANBusName);
-    cancoder = new CANcoder(constants.CANcoderId, TunerConstants.DrivetrainConstants.CANBusName);
+    cancoder = new CANcoder(constants.EncoderId, TunerConstants.DrivetrainConstants.CANBusName);
     turnEncoder = turnSpark.getEncoder();
     turnController = turnSpark.getClosedLoopController();
     // Configure drive motor
@@ -151,7 +156,7 @@ public class ModuleIOMix implements ModuleIO {
     var turnConfig = new TalonFXConfiguration();
     turnConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     turnConfig.Slot0 = constants.SteerMotorGains;
-    turnConfig.Feedback.FeedbackRemoteSensorID = constants.CANcoderId;
+    turnConfig.Feedback.FeedbackRemoteSensorID = constants.EncoderId;
     turnConfig.Feedback.FeedbackSensorSource =
         switch (constants.FeedbackSource) {
           case RemoteCANcoder -> FeedbackSensorSourceValue.RemoteCANcoder;
@@ -223,10 +228,10 @@ public class ModuleIOMix implements ModuleIO {
         () -> turnEncoder.setPosition(cancoder.getAbsolutePosition().getValueAsDouble()));
 
     // Configure CANCoder
-    CANcoderConfiguration cancoderConfig = constants.CANcoderInitialConfigs;
-    cancoderConfig.MagnetSensor.MagnetOffset = constants.CANcoderOffset;
+    CANcoderConfiguration cancoderConfig = constants.EncoderInitialConfigs;
+    cancoderConfig.MagnetSensor.MagnetOffset = constants.EncoderOffset;
     cancoderConfig.MagnetSensor.SensorDirection =
-        constants.CANcoderInverted
+        constants.EncoderInverted
             ? SensorDirectionValue.Clockwise_Positive
             : SensorDirectionValue.CounterClockwise_Positive;
     cancoder.getConfigurator().apply(cancoderConfig);
@@ -301,7 +306,7 @@ public class ModuleIOMix implements ModuleIO {
         turnEncoder::getPosition,
         (value) ->
             inputs.turnPosition =
-                new Rotation2d(value).minus(Rotation2d.fromRotations(constants.CANcoderOffset)));
+                new Rotation2d(value).minus(Rotation2d.fromRotations(constants.EncoderOffset)));
     ifOk(turnSpark, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
     ifOk(
         turnSpark,
@@ -363,7 +368,7 @@ public class ModuleIOMix implements ModuleIO {
   public void setTurnPosition(Rotation2d rotation) {
     double setpoint =
         MathUtil.inputModulus(
-            rotation.plus(Rotation2d.fromRotations(constants.CANcoderOffset)).getRadians(), 0, 1);
+            rotation.plus(Rotation2d.fromRotations(constants.EncoderOffset)).getRadians(), 0, 1);
     turnController.setReference(setpoint, ControlType.kPosition);
   }
 }

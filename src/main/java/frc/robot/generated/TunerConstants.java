@@ -118,7 +118,7 @@ public class TunerConstants {
           .withFeedbackSource(kSteerFeedbackType)
           .withDriveMotorInitialConfigs(driveInitialConfigs)
           .withSteerMotorInitialConfigs(steerInitialConfigs)
-          .withCANcoderInitialConfigs(cancoderInitialConfigs)
+          .withEncoderInitialConfigs(cancoderInitialConfigs)
           .withSteerInertia(kSteerInertia)
           .withDriveInertia(kDriveInertia)
           .withSteerFrictionVoltage(kSteerFrictionVoltage)
