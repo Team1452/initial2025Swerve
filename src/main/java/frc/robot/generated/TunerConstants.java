@@ -79,11 +79,11 @@ public class TunerConstants {
 
   // Every 1 rotation of the azimuth results in kCoupleRatio drive motor turns;
   // This may need to be tuned to your individual robot
-  private static final double kCoupleRatio = 3.5;
+  private static final double kCoupleRatio = 3.57;
 
-  private static final double kDriveGearRatio = 7.363636364;
-  private static final double kSteerGearRatio = 12.8;
-  private static final Distance kWheelRadius = Inches.of(2.167);
+  private static final double kDriveGearRatio = 6.746; //was 7.363636364. 6.75 taken from https://www.swervedrivespecialties.com/products/mk4i-swerve-module
+  private static final double kSteerGearRatio = 150/7; //From https://www.swervedrivespecialties.com/products/mk4i-swerve-module
+  private static final Distance kWheelRadius = Inches.of(2);
 
   private static final boolean kInvertLeftSide = false;
   private static final boolean kInvertRightSide = true;
