@@ -109,8 +109,8 @@ public class ModuleIOMix implements ModuleIO {
   private final AngularVelocity turnVelocity;
   private final Voltage turnAppliedVolts;
   private final Current turnCurrent;
-  public static final double turnEncoderPositionFactor = 2 * Math.PI; // Rotations -> Radians
-  public static final double turnEncoderVelocityFactor = (2 * Math.PI) / 60.0; // RPM -> Rad/Sec
+  public static final double turnEncoderPositionFactor = 2 * Math.PI / TunerConstants.FrontLeft.SteerMotorGearRatio; // Rotations -> Radians
+  public static final double turnEncoderVelocityFactor = (2 * Math.PI) / 60.0 / TunerConstants.FrontLeft.SteerMotorGearRatio; // RPM -> Rad/Sec
   // how do we get double to status signal? Do we just ditch status signal? How would that work with
   // the data reporting?
   // That looks like a talon-specific thing. You'll have to look at the spark example to see what
