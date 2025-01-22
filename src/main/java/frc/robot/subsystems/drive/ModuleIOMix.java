@@ -179,6 +179,7 @@ public class ModuleIOMix implements ModuleIO {
     // Configure steering motor
 
     var turnConfig = new SparkMaxConfig();
+   
     turnConfig
         .inverted(constants.SteerMotorInverted)
         .idleMode(IdleMode.kBrake)
@@ -222,11 +223,14 @@ public class ModuleIOMix implements ModuleIO {
         () ->
             turnSpark.configure(
                 turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+     
     tryUntilOk(
         turnSpark,
         5,
-        () -> turnEncoder.setPosition(cancoder.getAbsolutePosition().getValueAsDouble()));
-
+        () -> turnEncoder.setPosition(cancoder.getPosition().getValueAsDouble()));
+    
+   //  turnEncoder.setPosition(0);
+    
     // Configure CANCoder
     CANcoderConfiguration cancoderConfig = constants.EncoderInitialConfigs;
     cancoderConfig.MagnetSensor.MagnetOffset = constants.EncoderOffset;
@@ -306,7 +310,7 @@ public class ModuleIOMix implements ModuleIO {
         turnEncoder::getPosition,
         (value) ->
             inputs.turnPosition =
-                new Rotation2d(value).minus(Rotation2d.fromRotations(constants.EncoderOffset)));
+                new Rotation2d(value).minus(Rotation2d.fromRadians(constants.EncoderOffset)));
     ifOk(turnSpark, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
     ifOk(
         turnSpark,
