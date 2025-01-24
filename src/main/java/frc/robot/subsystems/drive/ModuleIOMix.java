@@ -109,13 +109,10 @@ public class ModuleIOMix implements ModuleIO {
   private final AngularVelocity turnVelocity;
   private final Voltage turnAppliedVolts;
   private final Current turnCurrent;
-  public static final double turnEncoderPositionFactor = 2 * Math.PI / TunerConstants.FrontLeft.SteerMotorGearRatio; // Rotations -> Radians
-  public static final double turnEncoderVelocityFactor = (2 * Math.PI) / 60.0 / TunerConstants.FrontLeft.SteerMotorGearRatio; // RPM -> Rad/Sec
-  // how do we get double to status signal? Do we just ditch status signal? How would that work with
-  // the data reporting?
-  // That looks like a talon-specific thing. You'll have to look at the spark example to see what
-  // they're doing differently
-  // meanwhile, you should also pull in the vision subsystem from the vision example.
+  public static final double turnEncoderPositionFactor =
+      (2 * Math.PI) / TunerConstants.FrontLeft.SteerMotorGearRatio; // Rotations -> Radians
+  public static final double turnEncoderVelocityFactor =
+      ((2 * Math.PI) / 60.0) / TunerConstants.FrontLeft.SteerMotorGearRatio; // RPM -> Rad/Sec
 
   // Connection debouncers
   private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
@@ -179,7 +176,7 @@ public class ModuleIOMix implements ModuleIO {
     // Configure steering motor
 
     var turnConfig = new SparkMaxConfig();
-   
+
     turnConfig
         .inverted(constants.SteerMotorInverted)
         .idleMode(IdleMode.kBrake)
@@ -197,7 +194,7 @@ public class ModuleIOMix implements ModuleIO {
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(true)
         .positionWrappingInputRange(
-            0, 2) // set input range to 0-2 (rad), taken from Drive Constants in spark example.
+            0, 6.28) // set input range to 0-2 (rad), taken from Drive Constants in spark example.
         .pidf(
             constants.SteerMotorGains.kP,
             constants.SteerMotorGains.kI,
@@ -223,17 +220,10 @@ public class ModuleIOMix implements ModuleIO {
         () ->
             turnSpark.configure(
                 turnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-     
-    tryUntilOk(
-        turnSpark,
-        5,
-        () -> turnEncoder.setPosition(cancoder.getPosition().getValueAsDouble()));
-    
-   //  turnEncoder.setPosition(0);
-    
+
     // Configure CANCoder
     CANcoderConfiguration cancoderConfig = constants.EncoderInitialConfigs;
-    cancoderConfig.MagnetSensor.MagnetOffset = constants.EncoderOffset;
+    cancoderConfig.MagnetSensor.MagnetOffset = 0;
     cancoderConfig.MagnetSensor.SensorDirection =
         constants.EncoderInverted
             ? SensorDirectionValue.Clockwise_Positive
@@ -273,6 +263,11 @@ public class ModuleIOMix implements ModuleIO {
         */
         );
     ParentDevice.optimizeBusUtilizationForAll(driveTalon);
+
+    tryUntilOk(
+        turnSpark,
+        5,
+        () -> turnEncoder.setPosition(cancoder.getPosition().getValueAsDouble() * 6.28));
   }
 
   @Override
@@ -283,10 +278,11 @@ public class ModuleIOMix implements ModuleIO {
     /*
     var turnStatus =
         BaseStatusSignal.refreshAll(turnPosition, turnVelocity, turnAppliedVolts, turnCurrent);
-    var turnEncoderStatus = BaseStatusSignal.refreshAll(turnAbsolutePosition);
     */
+    var turnEncoderStatus = BaseStatusSignal.refreshAll(turnAbsolutePosition);
 
     // Update drive inputs
+
     inputs.driveConnected = driveConnectedDebounce.calculate(driveStatus.isOK());
     inputs.drivePositionRad = Units.rotationsToRadians(drivePosition.getValueAsDouble());
     inputs.driveVelocityRadPerSec = Units.rotationsToRadians(driveVelocity.getValueAsDouble());
@@ -297,27 +293,28 @@ public class ModuleIOMix implements ModuleIO {
     inputs.turnConnected = turnConnectedDebounce.calculate(turnStatus.isOK());
     inputs.turnEncoderConnected = turnEncoderConnectedDebounce.calculate(turnEncoderStatus.isOK());
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
-    inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble());
+    inputs.turnPosition \= Rotation2d.fromRotations(turnPosition.getValueAsDouble());
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
     */
 
     // Update turn inputs
+    inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
     sparkStickyFault = false;
     ifOk(
         turnSpark,
         turnEncoder::getPosition,
         (value) ->
             inputs.turnPosition =
-                new Rotation2d(value).minus(Rotation2d.fromRadians(constants.EncoderOffset)));
+                new Rotation2d(value).minus(Rotation2d.fromRotations(constants.EncoderOffset)));
     ifOk(turnSpark, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
     ifOk(
         turnSpark,
         new DoubleSupplier[] {turnSpark::getAppliedOutput, turnSpark::getBusVoltage},
         (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
     ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
-    inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
+    inputs.turnConnected = turnEncoderConnectedDebounce.calculate(turnEncoderStatus.isOK());
 
     // Update odometry inputs
     inputs.odometryTimestamps =
@@ -360,7 +357,7 @@ public class ModuleIOMix implements ModuleIO {
         */
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
-    double velocityRotPerSec = Units.radiansToRotations(velocityRadPerSec);
+    double velocityRotPerSec = Units.radiansToRotations(velocityRadPerSec) * 4;
     driveTalon.setControl(
         switch (constants.DriveMotorClosedLoopOutput) {
           case Voltage -> velocityVoltageRequest.withVelocity(velocityRotPerSec);
@@ -372,7 +369,7 @@ public class ModuleIOMix implements ModuleIO {
   public void setTurnPosition(Rotation2d rotation) {
     double setpoint =
         MathUtil.inputModulus(
-            rotation.plus(Rotation2d.fromRotations(constants.EncoderOffset)).getRadians(), 0, 1);
+            rotation.plus(Rotation2d.fromRotations(constants.EncoderOffset)).getRadians(), 0, 6.28);
     turnController.setReference(setpoint, ControlType.kPosition);
   }
 }
