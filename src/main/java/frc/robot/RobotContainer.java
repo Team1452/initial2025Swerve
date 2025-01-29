@@ -26,7 +26,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.drive.DemoDrive;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -49,7 +48,6 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
-  private final DemoDrive demoDrive = new DemoDrive(); // Demo drive subsystem, sim only
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -77,7 +75,7 @@ public class RobotContainer {
         //        new VisionIOLimelight(camera1Name, drive::getRotation));
         vision =
             new Vision(
-                demoDrive::addVisionMeasurement,
+                drive::addVisionMeasurement,
                 new VisionIOPhotonVision(camera0Name, robotToCamera0),
                 new VisionIOPhotonVision(camera1Name, robotToCamera1));
         break;
