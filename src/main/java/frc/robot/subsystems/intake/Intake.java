@@ -1,39 +1,57 @@
 package frc.robot.subsystems.intake;
 
-import com.revrobotics.spark.*;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import frc.robot.util.SparkUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
+import edu.wpi.first.units.measure.Angle;
+
 
 public class Intake extends SubsystemBase {
-    private final SparkMax m_intake = new SparkMax(IntakeConstants.IntakeID, MotorType.kBrushless);
-    
-    public Intake() {
+    // The hardware interface for the intake subsystem.
+    private final IntakeIO io;
 
-        SparkMaxConfig sparkConfig = new SparkMaxConfig();
-        SparkUtil.tryUntilOk(
-        m_intake,
-        5,
-        () ->
-            m_intake.configure(
-                sparkConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    private final IntakeIO.IntakeIOInputs inputs = new IntakeIO.IntakeIOInputs();
 
-                
+    public Intake(IntakeIO io) {
+        this.io = io;
     }
-
-    public void run() {
-        m_intake.set(1);
+    @Override
+    public void periodic() {
+        // Update sensor inputs from the hardware and log them.
+        io.updateInputs(inputs);
+        Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
+        Logger.recordOutput("Intake/IntakeOpen", inputs.intakeState);
+        Logger.recordOutput("Intake/SuckerSpeed", inputs.suckerSpeed);
+        Logger.recordOutput("Intake/SuckerRunning", inputs.suckerRunning);
     }
-
-    public void runVelocity(double speed) {
-        m_intake.set(speed);
+    /**
+     * Rotates the intake using the configured rotation speed.
+     * This is used to drive the intake towards an open position.
+     */
+    public void rotateIntake(boolean forward) {
+        io.setRotatorVelocity(forward ? IntakeConstants.INTAKE_ROTATION_SPEED : -IntakeConstants.INTAKE_ROTATION_SPEED);
     }
-
-    public void stop() {
-        m_intake.set(0);
+    /**
+     * Stops the intake rotation.
+     */
+    public void stopIntake() {
+        io.setRotatorVelocity(0);
+    }
+    /**
+     * Spins the sucker roller using the configured suck speed.
+     */
+    public void spinSucker(boolean forward) {
+        io.setSuckerVelocity(forward ? IntakeConstants.INTAKE_SUCK_SPEED : -IntakeConstants.INTAKE_SUCK_SPEED);
+    }
+    /**
+     * Stops the sucker roller.
+     */
+    public void stopSucker() {
+        io.setSuckerVelocity(0);
+    }
+    public Angle getIntakeAngle() {
+        return inputs.intakeAngle;
+    }
+    public boolean getIntakeState() {
+        return inputs.intakeState; //True for open, false for closed
     }
 }

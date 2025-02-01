@@ -39,6 +39,7 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOSpark;
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -112,7 +113,8 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
-    intake = new Intake();
+    //Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark IO. Cause im lazy and how often do we use the sim?
+    intake = new Intake(new IntakeIOSpark());
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -165,11 +167,10 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    controller
-        .leftBumper()
-        .whileTrue(
-            IntakeCommands.runIntakeSeconds(
-                intake, 2.0));
+    // Open intake when Left Bumper is pressed
+    controller.leftBumper().onTrue(IntakeCommands.openIntake(intake));
+    // Close intake when Right Bumper is pressed
+    controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
     
     // Reset gyro to 0° when B button is pressed
     controller
