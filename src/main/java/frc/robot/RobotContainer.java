@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.AutoCoralIntake;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
@@ -33,13 +34,16 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOMix;
 import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionIOTargetOnly;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIOSpark;
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -80,7 +84,8 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(camera0Name, robotToCamera0),
-                new VisionIOPhotonVision(camera1Name, robotToCamera1));
+                new VisionIOPhotonVision(camera1Name, robotToCamera1),
+                new VisionIOTargetOnly(camera2Name));
         break;
 
       case SIM:
@@ -113,7 +118,8 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
-    //Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark IO. Cause im lazy and how often do we use the sim?
+    // Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark
+    // IO. Cause im lazy and how often do we use the sim?
     intake = new Intake(new IntakeIOSpark());
 
     // Set up auto routines
@@ -171,7 +177,10 @@ public class RobotContainer {
     controller.leftBumper().onTrue(IntakeCommands.openIntake(intake));
     // Close intake when Right Bumper is pressed
     controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
-    
+
+    // Run intake routine when Y button is pressed
+    controller.y().onTrue(new AutoCoralIntake(drive, vision, intake, () -> controller.getLeftY()));
+
     // Reset gyro to 0° when B button is pressed
     controller
         .b()
