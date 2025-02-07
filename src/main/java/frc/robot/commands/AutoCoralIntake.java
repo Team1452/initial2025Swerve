@@ -65,7 +65,7 @@ public class AutoCoralIntake extends SequentialCommandGroup {
             })
         ),
         // Step 3: Stop the drivetrain once in range.
-        new InstantCommand(() -> drive.stop(), drive),
+        new InstantCommand(drive::stop, drive),
         // Step 4: Execute the intake routine (open arm, suck in coral, and close arm).
         IntakeCommands.runIntakeRoutine(intake)
     );
