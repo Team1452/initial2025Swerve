@@ -34,6 +34,7 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOMix;
 import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.vision.Vision;
@@ -70,10 +71,10 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOPigeon2(),
-                new ModuleIOMix(TunerConstants.FrontLeft),
-                new ModuleIOMix(TunerConstants.FrontRight),
-                new ModuleIOMix(TunerConstants.BackLeft),
-                new ModuleIOMix(TunerConstants.BackRight));
+                new ModuleIOTalons(TunerConstants.FrontLeft),
+                new ModuleIOTalons(TunerConstants.FrontRight),
+                new ModuleIOTalons(TunerConstants.BackLeft),
+                new ModuleIOTalons(TunerConstants.BackRight));
 
         // vision =
         //    new Vision(
