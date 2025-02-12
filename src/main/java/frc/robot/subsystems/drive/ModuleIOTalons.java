@@ -31,7 +31,6 @@ import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.hardware.TalonFXS;
 import com.ctre.phoenix6.signals.ExternalFeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
@@ -54,7 +53,7 @@ import java.util.Queue;
  */
 public class ModuleIOTalons implements ModuleIO {
   private final SwerveModuleConstants<
-          TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
+          TalonFXConfiguration, TalonFXSConfiguration, CANcoderConfiguration>
       constants;
 
   // Hardware objects
@@ -98,7 +97,7 @@ public class ModuleIOTalons implements ModuleIO {
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
 
   public ModuleIOTalons(
-      SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
+      SwerveModuleConstants<TalonFXConfiguration, TalonFXSConfiguration, CANcoderConfiguration>
           constants) {
     this.constants = constants;
     driveTalon = new TalonFX(constants.DriveMotorId, TunerConstants.DrivetrainConstants.CANBusName);
