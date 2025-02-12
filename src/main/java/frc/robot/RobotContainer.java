@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.AutoCoralIntake;
+import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
@@ -32,7 +32,6 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOMix;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.intake.Intake;
@@ -42,7 +41,6 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOTargetOnly;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -180,7 +178,7 @@ public class RobotContainer {
     controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
 
     // Run intake routine when Y button is pressed
-    controller.y().onTrue(new AutoCoralIntake(drive, vision, intake, () -> controller.getLeftY()));
+    controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
 
     // Reset gyro to 0° when B button is pressed
     controller
