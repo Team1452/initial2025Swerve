@@ -8,7 +8,6 @@ public class ElevatorConstants {
   public static final double kupSpeed = 0.6; // UPDATE
   public static final double kdownSpeed = 0.4; // UPDATE
   public static final boolean motorsInverted = false;
-  public static final double[] kElevatorHeights = {1,10,20,30}; //Handoff height, tier 1, 2, 3.
-  public static final double coralPosition = 3; //UPDATE
-
+  public static final double[] kElevatorHeights = {1, 10, 20, 30}; // Handoff height, tier 1, 2, 3.
+  public static final double coralPosition = 3; // UPDATE
 }

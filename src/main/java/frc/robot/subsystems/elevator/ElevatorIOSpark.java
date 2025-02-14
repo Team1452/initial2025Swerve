@@ -50,20 +50,20 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_ShoulderController = m_shoulder.getClosedLoopController();
   }
 
-
   @Override
   public void updateInputs(ElevatorIOInputs inputs) {
     inputs.shoulderPos = m_shoulder.getEncoder().getPosition();
     inputs.height = m_one.getEncoder().getPosition();
     inputs.velocity = m_one.getEncoder().getVelocity();
   }
+
   @Override
   public void setShoulderPosition(double setpoint) {
     m_ShoulderController.setReference(setpoint, ControlType.kPosition);
   }
+
   @Override
   public void setHeight(double setpoint) {
     m_UDController.setReference(setpoint, ControlType.kPosition);
   }
-} 
-
+}

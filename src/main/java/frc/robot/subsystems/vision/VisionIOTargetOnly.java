@@ -27,12 +27,11 @@ public class VisionIOTargetOnly implements VisionIO {
    */
   public VisionIOTargetOnly(String name) {
     camera = new PhotonCamera(name);
-    
   }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    
+
     inputs.connected = camera.isConnected();
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation

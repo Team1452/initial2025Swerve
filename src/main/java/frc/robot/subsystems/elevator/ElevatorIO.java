@@ -11,8 +11,8 @@ public interface ElevatorIO {
   }
 
   public default void setHeight(double setPoint) {}
-  public default void setShoulderPosition(double setPoint) {}
-  public default void updateInputs(ElevatorIOInputs inputs) {}
 
-  
+  public default void setShoulderPosition(double setPoint) {}
+
+  public default void updateInputs(ElevatorIOInputs inputs) {}
 }

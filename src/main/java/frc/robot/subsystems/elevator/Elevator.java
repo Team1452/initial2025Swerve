@@ -2,9 +2,7 @@ package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.elevator.ElevatorIO.ElevatorIOInputs;
-
 import org.littletonrobotics.junction.Logger;
-
 
 public class Elevator extends SubsystemBase {
   // Hardware interface for the elevator.
@@ -33,19 +31,19 @@ public class Elevator extends SubsystemBase {
   }
 
   /** Raises the elevator using a predefined open-loop upward speed. */
-  
 
   /** Returns the current measured height of the elevator. */
   public double getHeight() {
     return inputs.height;
   }
+
   public double getShoulderPos() {
     return inputs.shoulderPos;
   }
 
   /**
-   * Moves the elevator to the specified setpoint using closed-loop position control.
-   * This method leverages REVLib's internal PID controller via the IO's setPosition() method.
+   * Moves the elevator to the specified setpoint using closed-loop position control. This method
+   * leverages REVLib's internal PID controller via the IO's setPosition() method.
    *
    * @param setpoint The target elevator position in native encoder units.
    */
@@ -53,7 +51,7 @@ public class Elevator extends SubsystemBase {
     io.setHeight(setpoint);
   }
 
-  public void moveToShoulderPosition(double setpoint){
+  public void moveToShoulderPosition(double setpoint) {
     io.setShoulderPosition(setpoint);
   }
 }
