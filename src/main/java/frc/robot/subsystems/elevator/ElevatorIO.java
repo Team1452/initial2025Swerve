@@ -13,6 +13,8 @@ public interface ElevatorIO {
   }
 
   public default void setMotorOutput(double output) {}
-
+  public default void setPosition(double setPoint) {}
   public default void updateInputs(ElevatorIOInputs inputs) {}
+
+  
 }

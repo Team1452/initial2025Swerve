@@ -1,7 +1,9 @@
 package frc.robot.subsystems.elevator;
 
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -12,6 +14,7 @@ public class ElevatorIOSpark implements ElevatorIO {
   private final SparkMax m_two;
   private final SparkMaxConfig m_oneConfig;
   private final SparkMaxConfig m_twoConfig;
+  private final SparkClosedLoopController m_controller;
 
   public ElevatorIOSpark() {
     m_one = new SparkMax(ElevatorConstants.kmotorOnePort, MotorType.kBrushless);
@@ -32,7 +35,9 @@ public class ElevatorIOSpark implements ElevatorIO {
         () ->
             m_two.configure(
                 m_twoConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    m_controller = m_one.getClosedLoopController();
   }
+
 
   @Override
   public void setMotorOutput(double output) {
@@ -43,7 +48,11 @@ public class ElevatorIOSpark implements ElevatorIO {
   public void updateInputs(ElevatorIOInputs inputs) {
     inputs.height = m_one.getEncoder().getPosition();
     inputs.velocity = m_one.getEncoder().getVelocity();
-    inputs.atTop = m_one.getEncoder().getPosition() >= ElevatorConstants.kmaxHeight;
-    inputs.atBottom = m_one.getEncoder().getPosition() <= ElevatorConstants.kminHeight;
   }
-}
+  @Override
+  public void setPosition(double setpoint) {
+   
+    m_controller.setReference(setpoint, ControlType.kPosition);
+  }
+} 
+

@@ -1,37 +1,40 @@
 package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.elevator.ElevatorIO.ElevatorIOInputs;
+
 import org.littletonrobotics.junction.Logger;
 
 /**
  * Elevator subsystem for controlling the robot's elevator mechanism.
  *
- * <p>This implementation uses a hardware interface defined by {@link ElevatorIO} and logs sensor
- * inputs using Junction's Logger. The elevator's motion is controlled using preset upward/downward
- * speeds defined in {@link ElevatorConstants}.
+ * <p>This implementation uses a closed-loop control method via REVLib's SparkClosedLoopController.
+ * The ElevatorIOSparkClosedLoop (or equivalent) is expected to implement setPosition() to drive
+ * the motor using its onboard PID.
  *
  * <p>References:
- *
- * <ul>
- *   <li>WPILib Command-Based Programming:
- *       https://docs.wpilib.org/en/stable/docs/software/command-based/index.html
- *   <li>AdvantageKit: https://github.com/Mechanical-Advantage/AdvantageKit
- *   <li>REVLib and CTREPhoenix Documentation (as applicable) for motor and sensor control.
- * </ul>
+ *   <ul>
+ *     <li>WPILib Command-Based Programming:
+ *         https://docs.wpilib.org/en/stable/docs/software/commandbased/index.html</li>
+ *     <li>AdvantageKit:
+ *         https://github.com/Mechanical-Advantage/AdvantageKit</li>
+ *     <li>REVLib:
+ *         https://codedocs.revrobotics.com/java/</li>
+ *     <li>CTREPhoenix Documentation:
+ *         https://phoenix-documentation.readthedocs.io/en/latest/</li>
+ *   </ul>
  */
 public class Elevator extends SubsystemBase {
-  // Hardware interface for the elevator subsystem.
+  // Hardware interface for the elevator.
   private final ElevatorIO io;
 
   // Inputs from the elevator hardware.
-  // ElevatorIOInputs could include fields like height (in meters), velocity, and limit switch
-  // statuses.
-  private final ElevatorIO.ElevatorIOInputs inputs = new ElevatorIO.ElevatorIOInputs();
+  private final ElevatorIOInputs inputs = new ElevatorIOInputs();
 
   /**
-   * Constructs an Elevator subsystem.
+   * Constructs the Elevator subsystem.
    *
-   * @param io The concrete hardware interface for the elevator.
+   * @param io The closed-loop hardware interface (e.g. ElevatorIOSparkClosedLoop)
    */
   public Elevator(ElevatorIO io) {
     this.io = io;
@@ -39,48 +42,47 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Update sensor inputs from the hardware.
+    // Update sensor inputs.
     io.updateInputs(inputs);
 
-    // Log sensor values to the Dashboard (or any logging mechanism you use).
+    // Log sensor values using AdvantageKit's Logger.
     Logger.recordOutput("Elevator/Height", inputs.height);
     Logger.recordOutput("Elevator/Velocity", inputs.velocity);
-    Logger.recordOutput("Elevator/AtTop", inputs.atTop);
-    Logger.recordOutput("Elevator/AtBottom", inputs.atBottom);
     Logger.recordOutput("Elevator/HasCoral", inputs.hasCoral);
   }
 
-  /** Raises the elevator using the configured upward speed. */
+  /** Raises the elevator using a predefined open-loop upward speed. */
   public void raiseElevator() {
     io.setMotorOutput(ElevatorConstants.kupSpeed);
   }
 
-  /** Lowers the elevator using the configured downward speed. */
+  /** Lowers the elevator using a predefined open-loop downward speed. */
   public void lowerElevator() {
     io.setMotorOutput(-ElevatorConstants.kdownSpeed);
   }
 
-  /** Stops the elevator by setting the motor output to zero. */
+  /** Stops the elevator. */
   public void stopElevator() {
     io.setMotorOutput(0.0);
   }
 
-  /**
-   * Passes a custom motor output directly to the elevator. Typically, the output should be in the
-   * range [-1.0, 1.0].
-   *
-   * @param output The motor output value.
-   */
+  /** Provides direct open-loop control of the elevator motor output. */
   public void setMotorOutput(double output) {
     io.setMotorOutput(output);
   }
 
-  /**
-   * Returns the current measured height of the elevator.
-   *
-   * @return The elevator height in meters.
-   */
+  /** Returns the current measured height of the elevator. */
   public double getHeight() {
     return inputs.height;
+  }
+
+  /**
+   * Moves the elevator to the specified setpoint using closed-loop position control.
+   * This method leverages REVLib's internal PID controller via the IO's setPosition() method.
+   *
+   * @param setpoint The target elevator position in native encoder units.
+   */
+  public void moveToPosition(double setpoint) {
+    io.setPosition(setpoint);
   }
 }
