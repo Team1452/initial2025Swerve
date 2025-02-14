@@ -1,80 +1,83 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
-import java.util.function.DoubleSupplier;
+import frc.robot.commands.DriveCommands;
 
+/**
+ * An autonomous command for intake of CORAL using a vision-based alignment strategy.
+ *
+ * <p>This command uses the new {@link DriveCommands#joystickDriveAtAngle(Drive, DoubleSupplier, DoubleSupplier, Supplier)}
+ * command to control field-relative motion. The PID used internally by that command (configured following WPILib
+ * documentation for ProfiledPIDController with a TrapezoidProfile) continuously drives the angular motion toward a
+ * setpoint computed from the current heading plus vision yaw error. The vision system (implemented per AdvantageKit and
+ * WPILib vision docs) provides the target observations.
+ *
+ * <p>The routine consists of several phases:
+ * <ol>
+ *   <li>Pre-align: Rotate until the yaw error is less than 2°.
+ *   <li>Approach: Drive forward (using the provided forward joystick input) while maintaining alignment,
+ *       until the target pitch (a proxy for distance) exceeds a threshold.
+ *   <li>Stop: Halt the drive.
+ *   <li>Intake: Run the coral intake routine.
+ * </ol>
+ *
+ * <p>References:
+ * <ul>
+ *   <li>WPILib Command-Based Programming https://docs.wpilib.org/en/stable/docs/software/commandbased/index.html
+ *   <li>WPILib's ProfiledPIDController and TrapezoidProfile docs for trajectory control.
+ *   <li>AdvantageKit guidelines.
+ *   <li>REVLib and CTREPhoenix documentation (for drivetrain and sensor interfaces).
+ * </ul>
+ */
 public class AutoCoralIntake extends SequentialCommandGroup {
-  // Gain constant for rotational alignment; adjust by testing.
-  private static final double ALIGN_KP = 2.0;
-  // Threshold (in degrees) for the vision target pitch at which we consider the coral "in range."
-  // (This value will need to be tuned based on your mounting and target profile.)
+  // Threshold (in degrees) for the vision target pitch indicating that the coral is in range.
   private static final double IN_RANGE_PITCH_THRESHOLD_DEGREES = 10.0;
 
   /**
    * Constructs an AutoCoralIntake command.
    *
    * @param drive The drive subsystem.
-   * @param vision The vision subsystem (which uses the target-only IO for camera index 2).
+   * @param vision The vision subsystem (using camera index 2 for target observations).
    * @param intake The intake subsystem.
-   * @param forwardSupplier A DoubleSupplier for forward (y-axis) drive input.
+   * @param forwardSupplier A DoubleSupplier for forward drive input (usually from a joystick, range -1.0 to 1.0).
    */
-  public AutoCoralIntake(
-      Drive drive, Vision vision, Intake intake, DoubleSupplier forwardSupplier) {
+  public AutoCoralIntake(Drive drive, Vision vision, Intake intake, DoubleSupplier forwardSupplier) {
+    // Create a rotation supplier that uses vision to guide the desired angle.
+    // The setpoint is computed as the robot's current heading plus the vision yaw error.
+    // This provides a continuously updated target for the built-in PID in joystickDriveAtAngle.
+    Supplier<Rotation2d> rotationSupplier = () ->
+        drive.getRotation().plus(vision.getTargetObservation(2).tx());
+
     addCommands(
-        // Step 1: Pre-align the robot using camera 2.
+        // Phase 1: Pre-align the robot using vision until the yaw error is below 2°.
         new ParallelRaceGroup(
-            // Continually adjust rotation based on target x error.
-            new RunCommand(
-                () -> {
-                  var target = vision.getTargetObservation(2);
-                  double yawErrorRadians = target.tx().getRadians();
-                  double rotationCorrection = ALIGN_KP * yawErrorRadians;
-                  // Since we're not commanding any linear motion here, send zero forward speed.
-                  drive.runVelocity(
-                      ChassisSpeeds.fromFieldRelativeSpeeds(
-                          0.0, 0.0, rotationCorrection, drive.getRotation()));
-                },
-                drive),
-            // Terminate this phase once the yaw error is small.
-            new WaitUntilCommand(
-                () -> {
-                  var target = vision.getTargetObservation(2);
-                  return Math.abs(target.tx().getDegrees()) < 2.0;
-                })),
-        // Step 2: Drive forward (using joystick input) while maintaining alignment.
-        // This runs until the vision "pitch" indicates that the coral is in range.
+            // Use joystickDriveAtAngle with zero translation (only rotation control).
+            DriveCommands.joystickDriveAtAngle(drive, () -> 0.0, () -> 0.0, rotationSupplier),
+            // End this phase when the vision yaw error is small.
+            new WaitUntilCommand(() ->
+                Math.abs(vision.getTargetObservation(2).tx().getDegrees()) < 2.0)
+        ),
+        // Phase 2: Drive forward (using the provided forward supplier) while maintaining alignment.
         new ParallelRaceGroup(
-            new RunCommand(
-                () -> {
-                  double forwardSpeed =
-                      forwardSupplier.getAsDouble() * drive.getMaxLinearSpeedMetersPerSec();
-                  var target = vision.getTargetObservation(2);
-                  double yawErrorRadians = target.tx().getRadians();
-                  double rotationCorrection = ALIGN_KP * yawErrorRadians;
-                  drive.runVelocity(
-                      ChassisSpeeds.fromFieldRelativeSpeeds(
-                          forwardSpeed, 0.0, rotationCorrection, drive.getRotation()));
-                },
-                drive),
-            new WaitUntilCommand(
-                () -> {
-                  // Use the target pitch as a proxy for distance. Adjust the logic as needed.
-                  // REPLACE WITH CANRANGE DETECTION
-                  var target = vision.getTargetObservation(2);
-                  double pitchDegrees = target.ty().getDegrees();
-                  return Math.abs(pitchDegrees) > IN_RANGE_PITCH_THRESHOLD_DEGREES;
-                })),
-        // Step 3: Stop the drivetrain once in range.
+            // Drive forward while the PID corrects the angle based on vision.
+            DriveCommands.joystickDriveAtAngle(drive, () -> 0.0, forwardSupplier, rotationSupplier),
+            // End when the vision pitch indicates the coral is in range.
+            new WaitUntilCommand(() ->
+                Math.abs(vision.getTargetObservation(2).ty().getDegrees()) > IN_RANGE_PITCH_THRESHOLD_DEGREES)
+        ),
+        // Phase 3: Stop the drivetrain.
         new InstantCommand(drive::stop, drive),
-        // Step 4: Execute the intake routine (open arm, suck in coral, and close arm).
-        IntakeCommands.runIntakeRoutine(intake));
+        // Phase 4: Execute the coral intake routine.
+        IntakeCommands.runIntakeRoutine(intake)
+    );
   }
 }

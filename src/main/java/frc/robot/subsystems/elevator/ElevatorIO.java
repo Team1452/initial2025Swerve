@@ -7,13 +7,11 @@ public interface ElevatorIO {
   public static class ElevatorIOInputs {
     public double height = 0;
     public double velocity = 0;
-    public boolean atTop = false;
-    public boolean atBottom = false;
-    public boolean hasCoral = false;
+    public double shoulderPos = 0;
   }
 
-  public default void setMotorOutput(double output) {}
-  public default void setPosition(double setPoint) {}
+  public default void setHeight(double setPoint) {}
+  public default void setShoulderPosition(double setPoint) {}
   public default void updateInputs(ElevatorIOInputs inputs) {}
 
   
