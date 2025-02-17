@@ -13,12 +13,11 @@
 
 package frc.robot.subsystems.vision;
 
-import org.photonvision.PhotonCamera;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import org.photonvision.PhotonCamera;
 
 public class VisionConstants {
   // AprilTag layout
@@ -32,7 +31,6 @@ public class VisionConstants {
 
   public static PhotonCamera camera1 = new PhotonCamera(camera1Name);
   public static PhotonCamera camera2 = new PhotonCamera(camera2Name);
-
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)

@@ -8,6 +8,7 @@ public interface ElevatorIO {
     public double height = 0;
     public double velocity = 0;
     public double shoulderPos = 0;
+    public int level = 0;
   }
 
   public default void setHeight(double setPoint) {}
