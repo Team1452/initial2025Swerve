@@ -6,6 +6,7 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import frc.robot.util.SparkUtil;
 
@@ -24,10 +25,20 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_two = new SparkMax(ElevatorConstants.kmotorTwoPort, MotorType.kBrushless);
     m_shoulder = new SparkMax(ElevatorConstants.kshoulderPort, MotorType.kBrushless);
     m_oneConfig = new SparkMaxConfig();
-    m_twoConfig = new SparkMaxConfig();
-    m_shoulderConfig = new SparkMaxConfig();
-    m_twoConfig.follow(m_one, ElevatorConstants.motorsInverted);
 
+    m_shoulderConfig = new SparkMaxConfig();
+    m_oneConfig
+        .closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .positionWrappingEnabled(true)
+        .positionWrappingInputRange(
+            0, 6.28) //Not sure what this range should be, probably the range of the encoder. Set to 2 radians.
+        .pidf(
+            ElevatorConstants.kElevatorGains[0],
+            ElevatorConstants.kElevatorGains[1],
+            ElevatorConstants.kElevatorGains[2],
+            ElevatorConstants.kElevatorGains[3]); 
+    m_twoConfig = (SparkMaxConfig) m_oneConfig.follow(m_one);
     SparkUtil.tryUntilOk(
         m_one,
         5,
