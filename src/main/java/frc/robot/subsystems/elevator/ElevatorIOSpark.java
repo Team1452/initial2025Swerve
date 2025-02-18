@@ -29,15 +29,13 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_shoulderConfig = new SparkMaxConfig();
     m_oneConfig
         .closedLoop
+        .positionWrappingEnabled(false)
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .positionWrappingEnabled(true)
-        .positionWrappingInputRange(
-            0, 6.28) //Not sure what this range should be, probably the range of the encoder. Set to 2 radians.
         .pidf(
             ElevatorConstants.kElevatorGains[0],
             ElevatorConstants.kElevatorGains[1],
             ElevatorConstants.kElevatorGains[2],
-            ElevatorConstants.kElevatorGains[3]); 
+            ElevatorConstants.kElevatorGains[3]);
     m_twoConfig = (SparkMaxConfig) m_oneConfig.follow(m_one);
     SparkUtil.tryUntilOk(
         m_one,

@@ -1,7 +1,5 @@
 package frc.robot.subsystems.elevator;
 
-
-
 public class ElevatorConstants {
 
   public static final int kmotorOnePort = 55;
@@ -12,9 +10,10 @@ public class ElevatorConstants {
   public static final boolean motorsInverted = true;
   public static final double[] kElevatorHeights = {1, 10, 20, 30}; // Handoff height, tier 1, 2, 3.
   public static final double coralPosition = 3; // UPDATE
- public static final double[] kElevatorGains = {1.0, //P
-                                                0, //I
-                                                0, //D
-                                                0}; //F
-
+  public static final double[] kElevatorGains = {
+    1.0, // P
+    0, // I
+    0, // D
+    0
+  }; // F
 }

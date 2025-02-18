@@ -21,8 +21,11 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
-  public static final Mode simMode = Mode.SIM;
-  public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
+
+  public static final boolean testMode = false; // Set to true to enable test mode.
+
+  public static final Mode currentMode =
+      RobotBase.isReal() ? (testMode ? Mode.TEST : Mode.REAL) : Mode.SIM;
 
   public static enum Mode {
     /** Running on a real robot. */
@@ -30,6 +33,8 @@ public final class Constants {
 
     /** Running a physics simulator. */
     SIM,
+
+    TEST, // Running on a real robot in test mode. E.G Use case: testBed with only elevator.
 
     /** Replaying from a log file. */
     REPLAY

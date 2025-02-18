@@ -108,6 +108,19 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
         break;
 
+      case TEST: // Make a "blank" drive and "blank" vision, as these subsystems are most expensive
+        // and not needed for testing.
+        drive =
+            new Drive(
+                new GyroIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {});
+
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        break;
+
       default:
         // Replayed robot, disable IO implementations
         drive =
