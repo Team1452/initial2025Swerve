@@ -17,7 +17,8 @@ public interface IntakeIO {
 
   public default void setSuckerVelocity(double speed) {}
 
-  public default void setIntakeAngle(Angle angle){};
+  public default void setIntakeAngle(Angle angle) {}
+  ;
 
   public default void updateInputs(IntakeIOInputs inputs) {}
 }

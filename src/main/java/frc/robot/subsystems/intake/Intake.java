@@ -3,7 +3,6 @@ package frc.robot.subsystems.intake;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.IntakeCommands;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
@@ -24,6 +23,7 @@ public class Intake extends SubsystemBase {
 
     Logger.recordOutput("Intake/SuckerSpeed", inputs.suckerSpeed);
     Logger.recordOutput("Intake/IntakeState", IntakeCommands.intakeState);
+    Logger.recordOutput("Intake/SuckerCurrent", inputs.suckerCurrent);
   }
   /**
    * Rotates the intake using the configured rotation speed. This is used to drive the intake
@@ -31,7 +31,6 @@ public class Intake extends SubsystemBase {
    */
 
   /** Stops the intake rotation. */
-
   public void stopIntake() {
     io.setRotatorVelocity(0);
   }
@@ -44,14 +43,16 @@ public class Intake extends SubsystemBase {
   public void stopSucker() {
     io.setSuckerVelocity(0);
   }
+
   public double getSuckerCurrent() {
     return inputs.suckerCurrent;
   }
+
   public Angle getIntakeAngle() {
     return inputs.intakeAngle;
   }
+
   public void setIntakeAngle(Angle angle) {
     io.setIntakeAngle(angle);
   }
-
 }

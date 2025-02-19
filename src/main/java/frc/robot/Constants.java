@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public final class Constants {
 
-  public static final boolean testMode = false; // Set to true to enable test mode.
+  public static final boolean testMode = true; // Set to true to enable test mode.
 
   public static final Mode currentMode =
       RobotBase.isReal() ? (testMode ? Mode.TEST : Mode.REAL) : Mode.SIM;

@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -36,6 +37,8 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
@@ -53,7 +56,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
-  // private final Intake intake;
+  private final Intake intake;
   private final Elevator elevator;
 
   // Controller
@@ -133,7 +136,7 @@ public class RobotContainer {
     }
     // Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark
     // IO. Cause im lazy and how often do we use the sim?
-    // intake = new Intake(new IntakeIOSpark());
+    intake = new Intake(new IntakeIOSpark());
     elevator = new Elevator(new ElevatorIOSpark());
 
     // Set up auto routines
@@ -187,7 +190,7 @@ public class RobotContainer {
     controller.x().onTrue(ElevatorCommands.goToTier(elevator, 1));
 
     // Open intake when Left Bumper is pressed
-    // controller.leftBumper().onTrue(IntakeCommands.openIntake(intake));
+    controller.leftBumper().onTrue(IntakeCommands.suckInCoral(intake));
     // Close intake when Right Bumper is pressed
     // controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
 
