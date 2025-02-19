@@ -1,13 +1,17 @@
 package frc.robot.commands;
 
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.intake.Intake;
-import java.util.function.BooleanSupplier;
+import frc.robot.subsystems.intake.IntakeConstants;
+
+
 
 public class IntakeCommands {
   private IntakeCommands() {}
-
+  public static boolean intakeState = false; //start with closed intake;\
+  public static boolean hasCoral = false;
   /**
    * Creates a command that rotates the intake.
    *
@@ -16,21 +20,21 @@ public class IntakeCommands {
    * @return a command that runs the intake rotation until the desired state is reached, then stops
    *     the intake.
    */
-  private static Command rotateIntakeCommand(Intake intake, boolean open) {
-    // When opening, the condition is met if getIntakeState() returns true.
-    // When closing, the condition is met if getIntakeState() returns false.
-    BooleanSupplier condition = open ? intake::getIntakeState : () -> !intake.getIntakeState();
-    return Commands.sequence(
-        Commands.run(() -> intake.rotateIntake(open), intake).until(condition),
-        Commands.runOnce(intake::stopIntake, intake));
+  private static Command rotateIntakeCommand(Intake intake, Angle angle) {
+
+    return Commands.run( ()-> intake.setIntakeAngle(angle), intake);
   }
 
   public static Command openIntake(Intake intake) {
-    return rotateIntakeCommand(intake, true);
+    return rotateIntakeCommand(intake, IntakeConstants.INTAKE_OPEN_ANGLE) //Set the ref angle to open
+    .until(()-> intake.getIntakeAngle().isNear(IntakeConstants.INTAKE_OPEN_ANGLE,0.05))  //Keep setting until it's open.
+    .finallyDo(() -> intakeState = true); //Then set the state.
   }
 
   public static Command closeIntake(Intake intake) {
-    return rotateIntakeCommand(intake, false);
+    return rotateIntakeCommand(intake, IntakeConstants.INTAKE_CLOSED_ANGLE) //Set the ref angle to open
+    .until(()-> intake.getIntakeAngle().isNear(IntakeConstants.INTAKE_CLOSED_ANGLE,0.05))  //Keep setting until it's closed.
+    .finallyDo(() -> intakeState = false); //Then set the state.
   }
 
   /**
@@ -41,17 +45,16 @@ public class IntakeCommands {
    * @return a command that runs the sucker motor for a fixed duration and then stops it.
    */
   private static Command spinSuckerCommand(Intake intake, boolean direction) {
-    return Commands.sequence(
-        Commands.run(() -> intake.spinSucker(direction), intake),
-        Commands.waitSeconds(0.5), // ADJUST THIS VALUE IF NEEDED.
-        Commands.runOnce(intake::stopSucker, intake));
+     return Commands.run(() -> intake.spinSucker(direction), intake);
+        
   }
-
   public static Command suckInCoral(Intake intake) {
-    return spinSuckerCommand(intake, true);
+    return spinSuckerCommand( intake, true)
+    .until(() -> (intake.getSuckerCurrent() > IntakeConstants.suckerSpikeThreshhold) )
+    .andThen(() -> hasCoral = true);
   }
-
   public static Command spitOutCoral(Intake intake) {
+    hasCoral = false;
     return spinSuckerCommand(intake, false);
   }
 

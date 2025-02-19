@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.IntakeCommands;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
@@ -19,19 +21,17 @@ public class Intake extends SubsystemBase {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
-    Logger.recordOutput("Intake/IntakeOpen", inputs.intakeState);
+
     Logger.recordOutput("Intake/SuckerSpeed", inputs.suckerSpeed);
-    Logger.recordOutput("Intake/SuckerRunning", inputs.suckerRunning);
+    Logger.recordOutput("Intake/IntakeState", IntakeCommands.intakeState);
   }
   /**
    * Rotates the intake using the configured rotation speed. This is used to drive the intake
    * towards an open position.
    */
-  public void rotateIntake(boolean forward) {
-    io.setRotatorVelocity(
-        forward ? IntakeConstants.INTAKE_ROTATION_SPEED : -IntakeConstants.INTAKE_ROTATION_SPEED);
-  }
+
   /** Stops the intake rotation. */
+
   public void stopIntake() {
     io.setRotatorVelocity(0);
   }
@@ -44,12 +44,14 @@ public class Intake extends SubsystemBase {
   public void stopSucker() {
     io.setSuckerVelocity(0);
   }
-
+  public double getSuckerCurrent() {
+    return inputs.suckerCurrent;
+  }
   public Angle getIntakeAngle() {
     return inputs.intakeAngle;
   }
-
-  public boolean getIntakeState() {
-    return inputs.intakeState; // True for open, false for closed
+  public void setIntakeAngle(Angle angle) {
+    io.setIntakeAngle(angle);
   }
+
 }

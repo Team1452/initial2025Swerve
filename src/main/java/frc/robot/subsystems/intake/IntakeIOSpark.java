@@ -2,11 +2,20 @@ package frc.robot.subsystems.intake;
 
 import static edu.wpi.first.units.Units.Rotations;
 
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.units.measure.Angle;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
+
+import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.util.SparkUtil;
 
 public class IntakeIOSpark implements IntakeIO {
@@ -15,8 +24,8 @@ public class IntakeIOSpark implements IntakeIO {
   private final SparkMax m_sucker;
   SparkMaxConfig rotatorConfig;
   SparkMaxConfig suckerConfig;
-  boolean reversedRotator = false;
-  boolean reversedSucker = false;
+  SparkClosedLoopController rotatorController;
+
 
   public IntakeIOSpark() {
     // Configure and declare the motors
@@ -27,10 +36,23 @@ public class IntakeIOSpark implements IntakeIO {
             MotorType.kBrushless); // The motor that runs the roller and sucks in the coral
     rotatorConfig = new SparkMaxConfig();
     suckerConfig = new SparkMaxConfig();
-
-    rotatorConfig.inverted(reversedRotator);
-    suckerConfig.inverted(reversedSucker);
-
+    
+    rotatorConfig
+      .inverted(IntakeConstants.reversedRotator)
+      .idleMode(IdleMode.kBrake)
+      .closedLoop
+      .maxOutput(0.3) // Limit speed
+      .minOutput(-0.3) // Limit speed
+      .positionWrappingEnabled(false)
+      .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+      .pidf(
+          IntakeConstants.kIntakeGains[0],
+          IntakeConstants.kIntakeGains[1],
+          IntakeConstants.kIntakeGains[2],
+          IntakeConstants.kIntakeGains[3]);
+    suckerConfig
+      .inverted(IntakeConstants.reversedSucker)
+      .idleMode(IdleMode.kBrake);
     SparkUtil.tryUntilOk(
         m_rotator,
         5,
@@ -45,11 +67,17 @@ public class IntakeIOSpark implements IntakeIO {
         () ->
             m_sucker.configure(
                 suckerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+    rotatorController = m_rotator.getClosedLoopController();
+    
   }
 
   @Override
   public void setRotatorVelocity(double speed) {
     m_rotator.set(speed);
+  }
+  @Override
+  public void setIntakeAngle(Angle angle) {
+    rotatorController.setReference(angle.baseUnitMagnitude(), ControlType.kPosition);
   }
 
   @Override
@@ -59,21 +87,9 @@ public class IntakeIOSpark implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
+    inputs.suckerCurrent = m_sucker.getAppliedOutput();
     inputs.intakeAngle =
         Rotations.of(m_rotator.getEncoder().getPosition()); // Position in rotations
-    inputs.intakeState =
-        inputs.intakeAngle.isNear(
-                IntakeConstants.INTAKE_OPEN_ANGLE, IntakeConstants.openClosedVarianceThrehhold)
-            ? true // If the intake at the opened state, set the intake state to true
-            : (inputs.intakeAngle.isNear(
-                    Rotations.of(0), IntakeConstants.openClosedVarianceThrehhold)
-                ? false // If the intake at the closed state, set the intake state to false
-                : inputs
-                    .intakeState); // If the intake is not at the opened or closed state, then just
-    // ignore until the next update. ADJUST THE TOLERANCE IF NEEDED
     inputs.suckerSpeed = m_sucker.getEncoder().getVelocity(); // Rotations per minute
-    inputs.suckerRunning =
-        m_sucker.getOutputCurrent()
-            > 0.1; // Check if the sucker is running, ADJUST THIS VALUE IF NEEDED
   }
 }
