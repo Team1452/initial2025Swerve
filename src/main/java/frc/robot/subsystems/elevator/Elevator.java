@@ -1,7 +1,13 @@
 package frc.robot.subsystems.elevator;
 
+import edu.wpi.first.units.AngleUnit;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.ElevatorCommands;
 import frc.robot.subsystems.elevator.ElevatorIO.ElevatorIOInputs;
+
+import static edu.wpi.first.units.Units.Rotations;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
@@ -11,9 +17,9 @@ public class Elevator extends SubsystemBase {
   // Inputs from the elevator hardware.
   private final ElevatorIOInputs inputs = new ElevatorIOInputs();
   /**
-   * Constructs the Elevator subsystem.
+   *.
    *
-   * @param io The closed-loop hardware interface (e.g. ElevatorIOSparkClosedLoop)
+   * @param io The interfce)
    */
   public Elevator(ElevatorIO io) {
     this.io = io;
@@ -25,9 +31,11 @@ public class Elevator extends SubsystemBase {
     io.updateInputs(inputs);
 
     // Log sensor values using AdvantageKit's Logger.
-    Logger.recordOutput("Elevator/Height", inputs.height);
-    Logger.recordOutput("Elevator/Velocity", inputs.velocity);
-    Logger.recordOutput("Elevator/ShoulderPosition", inputs.shoulderPos);
+    Logger.recordOutput("Elevator/Tier", ElevatorCommands.currentTier);
+    Logger.recordOutput("Elevator/RequestedPos", ElevatorCommands.requestedPosition);
+    Logger.recordOutput("Elevator/Position", inputs.height);
+    Logger.recordOutput("Elevator/ShoulderAngle", inputs.shoulderAngle);
+
   }
 
   /** Raises the elevator using a predefined open-loop upward speed. */
@@ -37,8 +45,8 @@ public class Elevator extends SubsystemBase {
     return inputs.height;
   }
 
-  public double getShoulderPos() {
-    return inputs.shoulderPos;
+  public double getShoulderAngle() {
+    return inputs.shoulderAngle;
   }
 
   /**
@@ -48,10 +56,12 @@ public class Elevator extends SubsystemBase {
    * @param setpoint The target elevator position in native encoder units.
    */
   public void moveToPosition(double setpoint) {
-    io.setHeight(setpoint);
+    io.setHeight(setpoint >= ElevatorConstants.shoulderLength ? setpoint : Math.max((ElevatorConstants.shoulderLength *  Math.cos(getShoulderAngle() * 2* 3.14))+0.3, setpoint));
+    //When at a height where arm may impact, Set the height the max of either the requested Setpoint or the minSetPoint,
+    //Which is the cos of the shoulder angle (conv to radians) * the length of the arm, so minSetPoint is the height of the end of the shoulder, +0.3 for good measure.
   }
 
-  public void moveToShoulderPosition(double setpoint) {
-    io.setShoulderPosition(setpoint);
+  public void moveToShoulderAngle(double setpoint) {
+    io.setShoulderAngle(setpoint);
   }
 }
