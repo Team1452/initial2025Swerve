@@ -9,11 +9,11 @@ public interface ElevatorIO {
     public double shoulderAngle = 0;
   }
 
-  public default void setHeight(double setPoint) {}
+  public default void setHeight(double setpoint) {}
 
-  public default void setShoulderAngle(double setPoint) {}
+  public default void setShoulderAngle(double setpoint) {}
+
+  public default void rotateShoulder(double setpoint) {}
 
   public default void updateInputs(ElevatorIOInputs inputs) {}
-
-
 }

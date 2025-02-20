@@ -199,7 +199,10 @@ public class RobotContainer {
 
     controller
         .pov(90)
-        .whileTrue(ElevatorCommands.moveElevatorUD(elevator, () -> -controller.getRightY()));
+        .whileTrue(
+            ElevatorCommands.controlElevatorXY(
+                elevator, () -> controller.getRightX(), () -> -controller.getRightY()));
+    controller.pov(270).onTrue(Commands.runOnce(() -> elevator.moveToPosition(15), elevator));
     controller.pov(180).onTrue(ElevatorCommands.tierDown(elevator));
     controller.pov(0).onTrue(ElevatorCommands.tierUp(elevator));
 

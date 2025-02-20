@@ -32,8 +32,8 @@ public class ElevatorIOSpark implements ElevatorIO {
         .inverted(true)
         .idleMode(IdleMode.kBrake)
         .closedLoop
-        .maxOutput(0.3) // Limit speed
-        .minOutput(-0.25) // Limit speed
+        .maxOutput(0.45) // Limit speed
+        .minOutput(-0.45) // Limit speed
         .positionWrappingEnabled(false)
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pidf(
@@ -41,13 +41,22 @@ public class ElevatorIOSpark implements ElevatorIO {
             ElevatorConstants.kElevatorGains[1],
             ElevatorConstants.kElevatorGains[2],
             ElevatorConstants.kElevatorGains[3]);
+    m_shoulderConfig
+        .inverted(false)
+        .idleMode(IdleMode.kBrake)
+        .closedLoop
+        .maxOutput(1) // Limit speed
+        .minOutput(-1) // Limit speed
+        .positionWrappingEnabled(true)
+        .positionWrappingInputRange(0, 1)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .pidf(
+            ElevatorConstants.kShoulderGains[0],
+            ElevatorConstants.kShoulderGains[1],
+            ElevatorConstants.kShoulderGains[2],
+            ElevatorConstants.kShoulderGains[3]);
     m_twoConfig.apply(m_oneConfig).follow(m_one, ElevatorConstants.motorsInverted);
-    m_shoulderConfig
-          .closedLoop
-          .feedbackSensor(FeedbackSensor.kPrimaryEncoder); //When we get througbore encoder, change to kAbsoluteEncoder
-    m_shoulderConfig
-          .absoluteEncoder
-          .zeroOffset(ElevatorConstants.kShoulderOffset);
+    m_shoulderConfig.absoluteEncoder.zeroOffset(ElevatorConstants.kShoulderOffset);
     SparkUtil.tryUntilOk(
         m_one,
         5,
@@ -60,29 +69,40 @@ public class ElevatorIOSpark implements ElevatorIO {
         () ->
             m_two.configure(
                 m_twoConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-    
+
     SparkUtil.tryUntilOk(
         m_shoulder,
         5,
         () ->
             m_shoulder.configure(
                 m_shoulderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-                
+
     m_oneController = m_one.getClosedLoopController();
     m_ShoulderController = m_shoulder.getClosedLoopController();
+    SparkUtil.tryUntilOk(
+        m_shoulder,
+        5,
+        () -> m_shoulder.getEncoder().setPosition(m_shoulder.getAbsoluteEncoder().getPosition()));
+    SparkUtil.tryUntilOk(m_one, 5, () -> m_shoulder.getEncoder().setPosition(0));
   }
 
   @Override
   public void updateInputs(ElevatorIOInputs inputs) {
-    //When we get a a through-bore encoder:
-    //inputs.shoulderAngle= m_shoulder.getAbsoluteEncoder().getPosition();
-    inputs.shoulderAngle= m_shoulder.getEncoder().getPosition(); //make sure this is homed on startup. (Straight up)
-    inputs.height = m_one.getEncoder().getPosition(); 
+
+    inputs.shoulderAngle = m_shoulder.getAbsoluteEncoder().getPosition();
+    // inputs.shoulderAngle = m_shoulder.getEncoder().getPosition(); // make sure this is homed on
+    // startup. (Straight up)
+    inputs.height = m_one.getEncoder().getPosition();
   }
 
   @Override
   public void setShoulderAngle(double setpoint) {
     m_ShoulderController.setReference(setpoint, ControlType.kPosition);
+  }
+
+  @Override
+  public void rotateShoulder(double setpoint) {
+    m_shoulder.set(setpoint);
   }
 
   @Override
