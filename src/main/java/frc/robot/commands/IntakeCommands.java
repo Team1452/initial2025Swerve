@@ -27,25 +27,12 @@ public class IntakeCommands {
   public static Command openIntake(Intake intake) {
     return rotateIntakeCommand(
             intake, IntakeConstants.INTAKE_OPEN_ANGLE) // Set the ref angle to open
-        .until(
-            () ->
-                intake
-                    .getIntakeAngle()
-                    .isNear(
-                        IntakeConstants.INTAKE_OPEN_ANGLE, 0.05)) // Keep setting until it's open.
         .andThen(() -> intakeState = true); // Then set the state.
   }
 
   public static Command closeIntake(Intake intake) {
     return rotateIntakeCommand(
             intake, IntakeConstants.INTAKE_CLOSED_ANGLE) // Set the ref angle to open
-        .until(
-            () ->
-                intake
-                    .getIntakeAngle()
-                    .isNear(
-                        IntakeConstants.INTAKE_CLOSED_ANGLE,
-                        0.05)) // Keep setting until it's closed.
         .andThen(() -> intakeState = false); // Then set the state.
   }
 
