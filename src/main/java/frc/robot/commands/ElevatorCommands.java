@@ -50,31 +50,16 @@ public class ElevatorCommands {
         elevator);
   }
 
-  public static Command moveElevatorUD(Elevator elevator, DoubleSupplier input) {
-    requestedPosition = elevator.getHeight();
-    return Commands.run(
-            () -> {
-              requestedPosition += (MathUtil.applyDeadband(input.getAsDouble(), 0.3)) / 5;
-              elevator.moveToPosition(requestedPosition);
-            },
-            elevator)
-        .repeatedly()
-        .handleInterrupt(() -> elevator.moveToPosition(elevator.getHeight()));
-  }
-
   public static Command controlElevatorXY(
     Elevator elevator, DoubleSupplier inputx, DoubleSupplier inputy) {
     requestedPosition = elevator.getHeight();
     return Commands.run(
             () -> {
-              requestedPosition += 
-              (requestedPosition < elevator.getMinHeight())
-                  ? Math.max(0, (MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)) / 5)
-                  : (requestedPosition > ElevatorConstants.maxHeight)
-                      ? Math.min(0, (MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)) / 5)
-                      : (MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)) / 5;
+              requestedPosition = Math.max(ElevatorConstants.maxHeight, Math.min(requestedPosition + 
+              MathUtil.applyDeadband(inputy.getAsDouble(), 0.3) / 3.5 //Change this to adjust deadband and stepSize.
+              , elevator.getMinHeight()));
               elevator.moveToPosition(requestedPosition);
-              elevator.moveShoulderBy(MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5);
+              elevator.moveShoulderBy(MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5); //Change this to adjust deadband and stepSize.
             },
             elevator)
         .repeatedly()
@@ -83,17 +68,5 @@ public class ElevatorCommands {
               elevator.moveToPosition(elevator.getHeight());
               elevator.moveToShoulderAngle(elevator.getShoulderAngle());
             });
-  }
-
-  public static Command rotateShoulder(Elevator elevator, DoubleSupplier input) {
-    requestedAngle = elevator.getShoulderAngle();
-    return Commands.run(
-            () -> {
-              requestedAngle += (MathUtil.applyDeadband(Math.pow(input.getAsDouble(), 1), 0.3)) / 5;
-              elevator.moveToShoulderAngle(requestedAngle);
-            },
-            elevator)
-        .repeatedly()
-        .handleInterrupt(() -> elevator.moveToShoulderAngle(elevator.getShoulderAngle()));
   }
 }
