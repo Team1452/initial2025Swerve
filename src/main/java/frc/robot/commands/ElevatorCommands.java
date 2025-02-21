@@ -55,13 +55,13 @@ public class ElevatorCommands {
     requestedPosition = elevator.getHeight();
     return Commands.run(
             () -> {
-              requestedPosition = Math.max(ElevatorConstants.maxHeight, Math.min(requestedPosition + 
+              requestedPosition = Math.max(elevator.getMinHeight(), Math.min(requestedPosition + 
               MathUtil.applyDeadband(inputy.getAsDouble(), 0.3) / 3.5 //Change this to adjust deadband and stepSize.
-              , elevator.getMinHeight()));
+              , ElevatorConstants.maxHeight));
               elevator.moveToPosition(requestedPosition);
               elevator.moveShoulderBy(MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5); //Change this to adjust deadband and stepSize.
             },
-            elevator)
+            elevator).andThen(Commands.run(() ->elevator.moveToShoulderAngle(elevator.getShoulderAngle())).onlyIf(() -> MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5 == 0))
         .repeatedly()
         .handleInterrupt(
             () -> {
