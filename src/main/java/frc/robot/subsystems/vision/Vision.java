@@ -19,24 +19,35 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import frc.robot.subsystems.vision.VisionIO.TargetObservation;
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.PhotonUtils;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class Vision extends SubsystemBase {
+  // private final Drive drive;
   private final VisionConsumer consumer;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
+  private final Drive drive;
 
-  public Vision(VisionConsumer consumer, VisionIO... io) {
+  public boolean alignToBranch = false;
+  public boolean driveReady = false;
+
+  public Vision(Drive drive, VisionConsumer consumer, VisionIO... io) {
+    this.drive = drive;
     this.consumer = consumer;
     this.io = io;
 
@@ -177,6 +188,72 @@ public class Vision extends SubsystemBase {
     Logger.recordOutput(
         "Vision/Summary/RobotPosesRejected",
         allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+
+    TargetObservation targetObservation = getTargetObservation(1);
+    double targetError = targetObservation.ty().getDegrees();
+
+    // System.out.println(alignToBranch);
+
+    if (alignToBranch == true) {
+      var result = VisionConstants.camera1.getLatestResult();
+      // System.out.println("check 1");
+      if (result.hasTargets() == true) {
+        // System.out.println("check 2");
+
+        PhotonTrackedTarget target = result.getBestTarget();
+
+        if (target.getFiducialId() == 1) {
+
+          // System.out.println("check 3");
+
+          double targetRange =
+              PhotonUtils.calculateDistanceToTargetMeters(
+                  0.254, // Measured with a tape measure, or in CAD.
+                  0.22225, // From 2024 game manual for ID 7
+                  Units.degreesToRadians(0), // Measured with a protractor, or in CAD.
+                  Units.degreesToRadians(targetError));
+
+          System.out.println(targetRange);
+
+          if (Math.abs(targetRange) > 0.3) {
+            driveReady = true;
+          } else {
+            driveReady = false;
+          }
+
+          System.out.println(driveReady);
+          // BooleanSupplier condition = () -> !driveReady;
+
+          if (driveReady == true) {
+            drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(1, 0.0, 0), drive.getRotation()));
+            System.out.println("COMMAND OVER");
+          } else {
+            drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+          }
+        }
+      } else {
+        alignToBranch = false;
+        drive.runVelocity(
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+      }
+    }
+  }
+
+  public void setAlign(boolean j) {
+    alignToBranch = j;
+  }
+
+  public boolean getDriveStatus() {
+    return driveReady;
+  }
+
+  public boolean getAlignToBranch() {
+    return alignToBranch;
   }
 
   @FunctionalInterface

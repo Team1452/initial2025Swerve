@@ -84,7 +84,7 @@ public class RobotContainer {
         //        new VisionIOLimelight(camera0Name, drive::getRotation),
         //        new VisionIOLimelight(camera1Name, drive::getRotation));
         vision =
-            new Vision(
+            new Vision(drive,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(camera0Name, robotToCamera0),
                 new VisionIOPhotonVision(camera1Name, robotToCamera1),
@@ -102,7 +102,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
 
         vision =
-            new Vision(
+            new Vision(drive,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
@@ -118,7 +118,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
 
       default:
@@ -131,7 +131,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
     // Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark

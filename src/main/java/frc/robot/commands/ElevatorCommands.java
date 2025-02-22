@@ -51,17 +51,28 @@ public class ElevatorCommands {
   }
 
   public static Command controlElevatorXY(
-    Elevator elevator, DoubleSupplier inputx, DoubleSupplier inputy) {
+      Elevator elevator, DoubleSupplier inputx, DoubleSupplier inputy) {
     requestedPosition = elevator.getHeight();
     return Commands.run(
             () -> {
-              requestedPosition = Math.max(elevator.getMinHeight(), Math.min(requestedPosition + 
-              MathUtil.applyDeadband(inputy.getAsDouble(), 0.3) / 3.5 //Change this to adjust deadband and stepSize.
-              , ElevatorConstants.maxHeight));
+              requestedPosition =
+                  Math.max(
+                      elevator.getMinHeight(),
+                      Math.min(
+                          requestedPosition
+                              + MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)
+                                  / 3.5 // Change this to adjust deadband and stepSize.
+                          ,
+                          ElevatorConstants.maxHeight));
               elevator.moveToPosition(requestedPosition);
-              elevator.moveShoulderBy(MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5); //Change this to adjust deadband and stepSize.
+              elevator.moveShoulderBy(
+                  MathUtil.applyDeadband(inputx.getAsDouble(), 0.3)
+                      / 3.5); // Change this to adjust deadband and stepSize.
             },
-            elevator).andThen(Commands.run(() ->elevator.moveToShoulderAngle(elevator.getShoulderAngle())).onlyIf(() -> MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5 == 0))
+            elevator)
+        .andThen(
+            Commands.run(() -> elevator.moveToShoulderAngle(elevator.getShoulderAngle()))
+                .onlyIf(() -> MathUtil.applyDeadband(inputx.getAsDouble(), 0.3) / 3.5 == 0))
         .repeatedly()
         .handleInterrupt(
             () -> {
