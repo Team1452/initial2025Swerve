@@ -24,10 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.ElevatorCommands;
-import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -35,15 +32,9 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalons;
-import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.ElevatorIOSpark;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.subsystems.vision.VisionIOTargetOnly;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -56,8 +47,8 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Vision vision;
-  private final Intake intake;
-  private final Elevator elevator;
+  // private final Intake intake;
+  // private final Elevator elevator;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -82,13 +73,19 @@ public class RobotContainer {
         //    new Vision(
         //        drive::addVisionMeasurement,
         //        new VisionIOLimelight(camera0Name, drive::getRotation),
-        //        new VisionIOLimelight(camera1Name, drive::getRotation));
+        //
+        /*     new VisionIOLimelight(camera1Name, drive::getRotation));
         vision =
-            new Vision(drive,
+            new Vision(
+                drive,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(camera0Name, robotToCamera0),
                 new VisionIOPhotonVision(camera1Name, robotToCamera1),
                 new VisionIOTargetOnly(camera2Name));
+                */
+        vision =
+            new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
         break;
 
       case SIM:
@@ -102,7 +99,8 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
 
         vision =
-            new Vision(drive,
+            new Vision(
+                drive,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
@@ -118,7 +116,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        vision = new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision =
+            new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
 
       default:
@@ -131,13 +130,14 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
 
-        vision = new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision =
+            new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
     // Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark
     // IO. Cause im lazy and how often do we use the sim?
-    intake = new Intake(new IntakeIOSpark());
-    elevator = new Elevator(new ElevatorIOSpark());
+    // intake = new Intake(new IntakeIOSpark());
+    // elevator = new Elevator(new ElevatorIOSpark());
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -186,26 +186,27 @@ public class RobotContainer {
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
                 () -> new Rotation2d()));
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(ElevatorCommands.goToTier(elevator, 1));
+    /*
+       // Switch to X pattern when X button is pressed
+       controller.x().onTrue(ElevatorCommands.goToTier(elevator, 1));
 
-    // Open intake when Left Bumper is pressed
-    controller.leftBumper().onTrue(IntakeCommands.suckInCoral(intake));
-    // Close intake when Right Bumper is pressed
-    // controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
+       // Open intake when Left Bumper is pressed
+       controller.leftBumper().onTrue(IntakeCommands.suckInCoral(intake));
+       // Close intake when Right Bumper is pressed
+       // controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
 
-    // Run intake routine when Y button is pressed
-    controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
+       // Run intake routine when Y button is pressed
+       controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
 
-    controller
-        .pov(90)
-        .whileTrue(
-            ElevatorCommands.controlElevatorXY(
-                elevator, () -> controller.getRightX(), () -> -controller.getRightY()));
-    controller.pov(270).onTrue(Commands.runOnce(() -> elevator.moveToPosition(15), elevator));
-    controller.pov(180).onTrue(ElevatorCommands.tierDown(elevator));
-    controller.pov(0).onTrue(ElevatorCommands.tierUp(elevator));
-
+       controller
+           .pov(90)
+           .whileTrue(
+               ElevatorCommands.controlElevatorXY(
+                   elevator, () -> controller.getRightX(), () -> -controller.getRightY()));
+       controller.pov(270).onTrue(Commands.runOnce(() -> elevator.moveToPosition(15), elevator));
+       controller.pov(180).onTrue(ElevatorCommands.tierDown(elevator));
+       controller.pov(0).onTrue(ElevatorCommands.tierUp(elevator));
+    */
     // Reset gyro to 0° when B button is pressed
     controller
         .b()

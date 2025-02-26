@@ -20,6 +20,8 @@ public class ElevatorCommands {
   /** Command to move the elevator to the specified tier position. */
   public static InstantCommand goToTier(Elevator elevator, int tier) {
     // Update the current tier index for consistency with cycling commands.
+    Logger.recordOutput("Elevator/Tier", ElevatorCommands.currentTier);
+    Logger.recordOutput("Elevator/RequestedPos", ElevatorCommands.requestedPosition);
     currentTier = tier;
     return new InstantCommand(
         () -> elevator.moveToPosition(ElevatorConstants.kElevatorHeights[tier]), elevator);
@@ -28,12 +30,7 @@ public class ElevatorCommands {
   /** Command to cycle to the next elevator tier (D-Pad Up). */
   public static InstantCommand tierUp(Elevator elevator) {
     System.out.println("Up");
-    return new InstantCommand(
-        () -> {
-          currentTier = (currentTier + 1) % ElevatorConstants.kElevatorHeights.length;
-          elevator.moveToPosition(ElevatorConstants.kElevatorHeights[currentTier]);
-        },
-        elevator);
+    return goToTier(elevator, (currentTier + 1) % ElevatorConstants.kElevatorHeights.length);
   }
 
   /** Command to cycle to the previous elevator tier (D-Pad Down). */

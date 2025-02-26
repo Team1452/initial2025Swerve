@@ -20,9 +20,7 @@ public class Intake extends SubsystemBase {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
-
     Logger.recordOutput("Intake/SuckerSpeed", inputs.suckerSpeed);
-    Logger.recordOutput("Intake/IntakeState", IntakeCommands.intakeState);
     Logger.recordOutput("Intake/SuckerCurrent", inputs.suckerCurrent);
   }
   /**
