@@ -1,74 +1,39 @@
 package frc.robot.commands;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 
 public class IntakeCommands {
-  private IntakeCommands() {}
-
-  public static boolean intakeState = false; // start with closed intake;\
-  public static boolean hasCoral = false;
-  /**
-   * Creates a command that rotates the intake.
-   *
-   * @param intake The intake subsystem.
-   * @param open If true, rotates to open the intake; if false, rotates to close.
-   * @return a command that runs the intake rotation until the desired state is reached, then stops
-   *     the intake.
-   */
-  private static Command rotateIntakeCommand(Intake intake, Angle angle) {
-
-    return Commands.run(() -> intake.setIntakeAngle(angle), intake);
-  }
-
-  public static Command openIntake(Intake intake) {
-    return rotateIntakeCommand(
-            intake, IntakeConstants.INTAKE_OPEN_ANGLE) // Set the ref angle to open
-        .andThen(() -> intakeState = true); // Then set the state.
-  }
-
-  public static Command closeIntake(Intake intake) {
-    return rotateIntakeCommand(
-            intake, IntakeConstants.INTAKE_CLOSED_ANGLE) // Set the ref angle to open
-        .andThen(() -> intakeState = false); // Then set the state.
-  }
-
-  /**
-   * Creates a command that spins the sucker either to suck in or spit out.
-   *
-   * @param intake The intake subsystem.
-   * @param suck If true, spins to suck in; if false, spins to spit out.
-   * @return a command that runs the sucker motor.
-   */
-  private static Command spinSuckerCommand(Intake intake, boolean direction) {
-    return Commands.run(() -> intake.spinSucker(direction), intake)
-        .handleInterrupt(() -> intake.stopSucker());
-  }
-
-  public static Command suckInCoral(Intake intake) {
-    // System.out.println("spin");
-    return spinSuckerCommand(intake, true)
-        .onlyWhile(() -> intake.getSuckerCurrent() < IntakeConstants.suckerSpikeThreshhold)
-        .andThen(() -> hasCoral = true);
-  }
-
-  public static Command spitOutCoral(Intake intake) {
-    hasCoral = false;
-    return spinSuckerCommand(intake, false);
-  }
-
-  public static Command runIntakeRoutine(Intake intake) {
-    return Commands.sequence(
-            openIntake(intake), // Open the intake
-            suckInCoral(intake), // Suck in the coral
-            closeIntake(intake) // Close the intake
-            )
-        .handleInterrupt(
-            // If the command is interrupted, spit out the coral and close the intake ("panic
-            // mode").
-            () -> Commands.parallel(spitOutCoral(intake), closeIntake(intake)));
-  }
+    private IntakeCommands() {}
+    public static Command autoStopIntake(Intake intake) {
+        return Commands.sequence(
+            Commands.run(()->intake.spinSucker(true),intake),
+            Commands.waitUntil(()->intake.getSuckerCurrent() > IntakeConstants.suckerSpikeThreshhold),
+            Commands.run(intake::stopSucker,intake)
+        );
+    }
+  
+    public static Command runIntakeRoutine(Intake intake) {
+        return Commands.run(intake::rotateOutIntake,intake)//Start opening the intake 
+        .until(() -> intake.getIntakeAngle() > IntakeConstants.INTAKE_OPEN_ANGLE)  //Until its too far.
+        .andThen(()-> {
+            intake.stopIntake(); //Stop the rotation out.
+            autoStopIntake(intake); //Suck in a coral and stop once its in.
+            intake.rotateInIntake(); //Once we have a coral, start going back in.
+            intake.spinSucker(0.03); //Spin the sucker slightly to keep the coral during rotation in.
+            Commands.waitUntil(()->intake.getIntakeAngle() >= IntakeConstants.intakeHandOffAngle); //Wait until it's in the handoff position.
+            intake.stopIntake(); //Stop the intake.
+            intake.stopSucker(); //Stop the sucker.
+        }); 
+        
+    }
+    public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
+        return Commands.sequence(
+            runIntakeRoutine(intake), //Pick up a coral
+            ElevatorCommands.pickUpCoralFromIntake(elevator) //And handoff to the elevator.
+        );
+    }
 }

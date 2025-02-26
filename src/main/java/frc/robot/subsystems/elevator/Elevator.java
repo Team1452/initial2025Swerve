@@ -1,80 +1,60 @@
 package frc.robot.subsystems.elevator;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.ElevatorCommands;
 import frc.robot.subsystems.elevator.ElevatorIO.ElevatorIOInputs;
+import frc.robot.subsystems.intake.Intake;
+
+import java.util.function.BooleanSupplier;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
   // Hardware interface for the elevator.
   private final ElevatorIO io;
-  static double minHeight;
-  static double newSetPoint;
+  public static double elevatorRHeight = 0;
+  public static double elevatorRAngle = 0.25;
+  public static double minHeight = 0;
+  BooleanSupplier intakeStateSupplier;
+
   // Inputs from the elevator hardware.
   private final ElevatorIOInputs inputs = new ElevatorIOInputs();
   /**
-   * .
-   *
    * @param io The interfce)
    */
-  public Elevator(ElevatorIO io) {
-
+  public Elevator(ElevatorIO io, BooleanSupplier intakeStateSupplier) {
     this.io = io;
+    this.intakeStateSupplier = intakeStateSupplier; //Allows some communication between the intake and the elevator subsystems.
   }
 
   @Override
   public void periodic() {
-    // Update sensor inputs.
-    io.updateInputs(inputs);
-
-    // Log sensor values using AdvantageKit's Logger.
-    Logger.recordOutput("Elevator/Tier", ElevatorCommands.currentTier);
-    Logger.recordOutput("Elevator/RequestedPos", ElevatorCommands.requestedPosition);
-    Logger.recordOutput("Elevator/MinHeight", Elevator.minHeight);
-    Logger.recordOutput("Elevator/Position", inputs.height);
-    Logger.recordOutput("Elevator/ShoulderAngle", inputs.shoulderAngle);
+    io.updateInputs(inputs); //Refresh the inputs.
+    calcMinHeight(); //Guess.
+    io.setHeight(elevatorRHeight); //Set the height of the elevator to the modifiedRHeight.
+    io.setShoulderAngle(elevatorRAngle); //Set the angle of elevator every cycle. This prevents the elevator from moving when no signal is sent.
   }
-
-  /** Raises the elevator using a predefined open-loop upward speed. */
-
-  /** Returns the current measured height of the elevator. */
-  public double getHeight() {
-    return inputs.height;
+  public void setRHeight(double height) {
+    elevatorRHeight = MathUtil.clamp(height,minHeight,ElevatorConstants.maxHeight); //Clamp the height between the min and max positions.
   }
-
+  public void setRAngle(double angle) {
+    elevatorRAngle = intakeStateSupplier.getAsBoolean() ? angle : //If the intake is open, then set the angle to whatever. Otherwise:
+      MathUtil.clamp(angle, 0, 0.5); //Ensure that it faces up.
+  } 
   public double getShoulderAngle() {
     return inputs.shoulderAngle;
   }
+  private void calcMinHeight() {
+    if(!!intakeStateSupplier.getAsBoolean()) {
+      minHeight= ElevatorConstants.intakeHeight; //If the intake is closed, then the min is the lowest height possible for intake to pass through. 
+      //I am assuming here that intakeHeight > 20, which is the min height when the shoulder is rotated all the way down. If it is not, then there needs to be another ternary above.
+    }
+    else {//If it's open, then the min height depends on the angle of the shoulder.
+      minHeight= ((inputs.shoulderAngle >= 0.5 && inputs.shoulderAngle <= 1)) ? //if the shoulder is facing down: 
+        Math.abs( //Then return the abs value of the length of the shoulder times the sin of the shoulder angle. Who doesn't love trig?
+          ElevatorConstants.shoulderLength * Math.sin((inputs.shoulderAngle * 2 * Math.PI) + Math.PI / 2))
+          : 0; //Otherwise, return 0, as that is the minimum height set by the limit switch.
+    }
 
-  /**
-   * Moves the elevator to the specified setpoint using closed-loop position control. This method
-   * leverages REVLib's internal PID controller via the IO's setPosition() method.
-   *
-   * @param setpoint The target elevator position in native encoder units.
-   */
-  public void moveToPosition(double setpoint) {
-
-    minHeight =
-        (inputs.shoulderAngle >= 0.25 && inputs.shoulderAngle <= 0.75)
-            ? Math.abs(
-                ElevatorConstants.shoulderLength
-                    * Math.sin((inputs.shoulderAngle * 2 * Math.PI) + Math.PI / 2))
-            : 0;
-    io.setHeight(
-        (setpoint < minHeight)
-            ? minHeight
-            : setpoint > ElevatorConstants.maxHeight ? ElevatorConstants.maxHeight : setpoint);
-  }
-
-  public void moveToShoulderAngle(double setpoint) {
-    io.setShoulderAngle(setpoint);
-  }
-
-  public void moveShoulderBy(double setpoint) {
-    io.rotateShoulder(setpoint);
-  }
-
-  public double getMinHeight() {
-    return minHeight;
   }
 }

@@ -1,8 +1,6 @@
 package frc.robot.subsystems.intake;
 
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.IntakeCommands;
 import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
@@ -19,27 +17,18 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
-    Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
-
-    Logger.recordOutput("Intake/SuckerSpeed", inputs.suckerSpeed);
-    Logger.recordOutput("Intake/IntakeState", IntakeCommands.intakeState);
-    Logger.recordOutput("Intake/SuckerCurrent", inputs.suckerCurrent);
   }
-  /**
-   * Rotates the intake using the configured rotation speed. This is used to drive the intake
-   * towards an open position.
-   */
 
-  /** Stops the intake rotation. */
-  public void stopIntake() {
-    io.setRotatorVelocity(0);
-  }
+
   /** Spins the sucker roller using the configured suck speed. */
   public void spinSucker(boolean forward) {
     io.setSuckerVelocity(
-        forward ? IntakeConstants.INTAKE_SUCK_SPEED : -IntakeConstants.INTAKE_SUCK_SPEED);
+        forward ? IntakeConstants.intakeSuckSpeed : -IntakeConstants.intakeSuckSpeed);
   }
-  /** Stops the sucker roller. */
+  public void spinSucker(double speed) {
+    io.setSuckerVelocity(speed);
+  }
+
   public void stopSucker() {
     io.setSuckerVelocity(0);
   }
@@ -48,11 +37,21 @@ public class Intake extends SubsystemBase {
     return inputs.suckerCurrent;
   }
 
-  public Angle getIntakeAngle() {
+  public void rotateOutIntake() {
+    io.setRotatorVelocity(IntakeConstants.intakeRotateOutSpeed);
+  }
+  public void rotateInIntake() {
+    io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
+  }
+  
+  public void stopIntake() {
+    io.setRotatorVelocity(0);
+  }
+  public double getIntakeAngle() {
     return inputs.intakeAngle;
   }
 
-  public void setIntakeAngle(Angle angle) {
-    io.setIntakeAngle(angle);
+  public boolean getIntakeOpen() {
+    return inputs.intakeOpen;
   }
 }

@@ -45,6 +45,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOTargetOnly;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -78,12 +79,6 @@ public class RobotContainer {
                 new ModuleIOTalons(TunerConstants.FrontRight),
                 new ModuleIOTalons(TunerConstants.BackLeft),
                 new ModuleIOTalons(TunerConstants.BackRight));
-
-        // vision =
-        //    new Vision(
-        //        drive::addVisionMeasurement,
-        //        new VisionIOLimelight(camera0Name, drive::getRotation),
-        //        new VisionIOLimelight(camera1Name, drive::getRotation));
         vision =
             new Vision(
                 drive,
@@ -139,10 +134,9 @@ public class RobotContainer {
             new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
-    // Havent made a sim IO for the intake yet, so even in SIM mode, the intake will use the Spark
-    // IO. Cause im lazy and how often do we use the sim?
+    
     intake = new Intake(new IntakeIOSpark());
-    elevator = new Elevator(new ElevatorIOSpark());
+    elevator = new Elevator(new ElevatorIOSpark(), intake::getIntakeOpen);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -177,11 +171,11 @@ public class RobotContainer {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> -controller.getRightX()));
+    
     // Lock to 0° when A button is held
     controller
         .a()
@@ -191,26 +185,14 @@ public class RobotContainer {
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
                 () -> new Rotation2d()));
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(ElevatorCommands.goToTier(elevator, 1));
 
-    // Open intake when Left Bumper is pressed
-    controller.leftBumper().onTrue(IntakeCommands.suckInCoral(intake));
-    // Close intake when Right Bumper is pressed
-    // controller.rightBumper().onTrue(IntakeCommands.closeIntake(intake));
 
     // Run intake routine when Y button is pressed
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
-
-    controller
-        .pov(90)
-        .whileTrue(
-            ElevatorCommands.controlElevatorXY(
-                elevator, () -> controller.getRightX(), () -> -controller.getRightY()));
-    controller.pov(270).onTrue(Commands.runOnce(() -> elevator.moveToPosition(15), elevator));
-    controller.pov(180).onTrue(ElevatorCommands.tierDown(elevator));
-    controller.pov(0).onTrue(ElevatorCommands.tierUp(elevator));
-
+    //Intake and handoff on bumper press.
+    controller.leftBumper().onTrue(IntakeCommands.fullIntakeHandOff(intake,elevator));
+    //Score on right bumper
+    controller.rightBumper().onTrue(ElevatorCommands.placeOnTier(2,elevator)); //Score L2.
     // Reset gyro to 0° when B button is pressed
     controller
         .b()
