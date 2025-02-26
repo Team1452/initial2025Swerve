@@ -82,6 +82,7 @@ public class Vision extends SubsystemBase {
       Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
     }
 
+    // TODO: Memory Usage?
     // Initialize logging values
     List<Pose3d> allTagPoses = new LinkedList<>();
     List<Pose3d> allRobotPoses = new LinkedList<>();
@@ -94,6 +95,7 @@ public class Vision extends SubsystemBase {
       // Update disconnected alert
       disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
 
+      // TODO: Memory Usage?
       // Initialize logging values
       List<Pose3d> tagPoses = new LinkedList<>();
       List<Pose3d> robotPoses = new LinkedList<>();
