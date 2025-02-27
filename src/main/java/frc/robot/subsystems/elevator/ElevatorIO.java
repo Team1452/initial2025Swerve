@@ -16,4 +16,5 @@ public interface ElevatorIO {
   public default void rotateShoulder(double setpoint) {}
 
   public default void updateInputs(ElevatorIOInputs inputs) {}
+  public default void resetEncoder(){}
 }

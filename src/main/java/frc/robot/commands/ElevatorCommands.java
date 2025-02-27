@@ -8,7 +8,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 
-
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 
@@ -16,9 +16,15 @@ public class ElevatorCommands {
 
     public static Command controlElevatorWithController(DoubleSupplier inputx, DoubleSupplier inputy, Elevator elevator) {//Control the elevator, this will only alter the RHeight and RAngle, moving of motors is handled in Elevator.
         return Commands.run(()-> {
-            elevator.setRHeight(MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)/ 3.5); //Divide by 3.5 to adjust stepSize.
-            elevator.setRAngle(MathUtil.applyDeadband(inputx.getAsDouble(), 0.2)/ 5);
+            elevator.adjustRHeight(MathUtil.applyDeadband(inputy.getAsDouble(), 0.3)/ 3.5); //Divide by 3.5 to adjust stepSize.
+            elevator.adjustRAngle(MathUtil.applyDeadband(inputx.getAsDouble(), 0.2)/ 5);
         });
+    }
+    public static Command microAdjustShoulderWithTrigger(DoubleSupplier trigger,BooleanSupplier inverse, Elevator elevator) {
+        return Commands.run(()-> {
+            //Trigger's base pos is 0.5, max is 1. So we'll subtract 0.5 and multiply by 2 to get a range of 0 to 1.
+            elevator.adjustRAngle( Math.pow( (trigger.getAsDouble()-0.5)*2,3)  ); //Cube the value.
+        }, elevator);
     }
 
     public static InstantCommand goToTier(int tier, Elevator elevator) {

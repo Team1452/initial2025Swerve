@@ -34,6 +34,14 @@ public class Elevator extends SubsystemBase {
     io.setHeight(elevatorRHeight); //Set the height of the elevator to the modifiedRHeight.
     io.setShoulderAngle(elevatorRAngle); //Set the angle of elevator every cycle. This prevents the elevator from moving when no signal is sent.
   }
+  public void adjustRHeight(double height) {
+    elevatorRHeight += height;
+    MathUtil.clamp(elevatorRHeight,minHeight,ElevatorConstants.maxHeight); //Clamp the height between the min and max positions.
+  }
+  public void adjustRAngle(double angle) {
+    elevatorRAngle += intakeStateSupplier.getAsBoolean() ? angle : //If the intake is open, then set the angle to whatever. Otherwise:
+    MathUtil.clamp(angle, 0, 0.5); //Ensure that it faces up.
+  }
   public void setRHeight(double height) {
     elevatorRHeight = MathUtil.clamp(height,minHeight,ElevatorConstants.maxHeight); //Clamp the height between the min and max positions.
   }
@@ -43,6 +51,9 @@ public class Elevator extends SubsystemBase {
   } 
   public double getShoulderAngle() {
     return inputs.shoulderAngle;
+  }
+  public void resetEncoder() {
+    io.resetEncoder();
   }
   private void calcMinHeight() {
     if(!!intakeStateSupplier.getAsBoolean()) {

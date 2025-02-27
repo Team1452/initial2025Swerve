@@ -24,4 +24,5 @@ public class ElevatorConstants {
   public static final double shoulderLength = 20;
   public static final double maxHeight = 42; 
   public static final double intakeHeight = 25;
+  public static final int klimitSwitchPort = 3;
 }

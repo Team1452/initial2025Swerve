@@ -8,6 +8,10 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
 import frc.robot.util.SparkUtil;
 
@@ -84,6 +88,8 @@ public class ElevatorIOSpark implements ElevatorIO {
         5,
         () -> m_shoulder.getEncoder().setPosition(m_shoulder.getAbsoluteEncoder().getPosition()));
     SparkUtil.tryUntilOk(m_one, 5, () -> m_shoulder.getEncoder().setPosition(0));
+
+    
   }
 
   @Override
@@ -108,5 +114,9 @@ public class ElevatorIOSpark implements ElevatorIO {
   @Override
   public void setHeight(double setpoint) {
     m_oneController.setReference(setpoint, ControlType.kPosition);
+  }
+  @Override
+  public void resetEncoder(){
+    m_one.getEncoder().setPosition(0);
   }
 }
