@@ -208,7 +208,7 @@ public class Drive extends SubsystemBase {
       } else {
         // Use the angle delta from the kinematics and module deltas
         Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-        // TODO: Mem Usage Issue? 
+        // TODO: Mem Usage Issue?
         rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
       }
 

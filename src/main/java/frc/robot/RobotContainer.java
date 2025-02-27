@@ -10,7 +10,7 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
-//github push test
+// github push test
 
 package frc.robot;
 
@@ -48,7 +48,6 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.vision.VisionIOTargetOnly;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -137,7 +136,7 @@ public class RobotContainer {
             new Vision(drive, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
-    
+
     intake = new Intake(new IntakeIOSpark());
     elevator = new Elevator(new ElevatorIOSpark(), intake::getIntakeOpen);
 
@@ -161,12 +160,10 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     DigitalInput elevatorlimitSwtich = new DigitalInput(ElevatorConstants.klimitSwitchPort);
-    Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);   
-    limitSwitchTrigger.onTrue(Commands.runOnce(elevator::resetEncoder,elevator));
+    Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);
+    limitSwitchTrigger.onFalse(Commands.runOnce(elevator::resetEncoder, elevator));
     // Configure the button bindings
     configureButtonBindings();
-
-    
   }
 
   /**
@@ -179,11 +176,11 @@ public class RobotContainer {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> -controller.getRightX()));
-    
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
+
     // Lock to 0° when A button is held
     controller
         .a()
@@ -194,13 +191,12 @@ public class RobotContainer {
                 () -> -controller.getLeftX(),
                 () -> new Rotation2d()));
 
-
     // Run intake routine when Y button is pressed
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
-    //Intake and handoff on bumper press.
-    controller.leftBumper().onTrue(IntakeCommands.fullIntakeHandOff(intake,elevator));
-    //Score on right bumper
-    controller.rightBumper().onTrue(ElevatorCommands.placeOnTier(2,elevator)); //Score L2.
+    // Intake and handoff on bumper press.
+    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
+    // Score on right bumper
+    controller.rightBumper().onTrue(ElevatorCommands.placeOnTier(2, elevator)); // Score L2.
     // Reset gyro to 0° when B button is pressed
     controller
         .b()

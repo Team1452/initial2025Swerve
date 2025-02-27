@@ -1,7 +1,6 @@
 package frc.robot.subsystems.intake;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
   // The hardware interface for the intake subsystem.
@@ -19,12 +18,12 @@ public class Intake extends SubsystemBase {
     io.updateInputs(inputs);
   }
 
-
   /** Spins the sucker roller using the configured suck speed. */
   public void spinSucker(boolean forward) {
     io.setSuckerVelocity(
         forward ? IntakeConstants.intakeSuckSpeed : -IntakeConstants.intakeSuckSpeed);
   }
+
   public void spinSucker(double speed) {
     io.setSuckerVelocity(speed);
   }
@@ -40,13 +39,15 @@ public class Intake extends SubsystemBase {
   public void rotateOutIntake() {
     io.setRotatorVelocity(IntakeConstants.intakeRotateOutSpeed);
   }
+
   public void rotateInIntake() {
     io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
   }
-  
+
   public void stopIntake() {
     io.setRotatorVelocity(0);
   }
+
   public double getIntakeAngle() {
     return inputs.intakeAngle;
   }

@@ -16,6 +16,6 @@ public final class IntakeConstants {
     0, // D
     0 // F
   };
-  public static final double intakeRotateOutSpeed = -0.3; //Negative is forward.
+  public static final double intakeRotateOutSpeed = -0.3; // Negative is forward.
   public static final double intakeRotateInSpeed = 0.5;
 }
