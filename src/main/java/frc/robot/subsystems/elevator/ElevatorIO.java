@@ -6,6 +6,7 @@ public interface ElevatorIO {
   @AutoLog
   public static class ElevatorIOInputs {
     public double height = 0;
+    public double internalAngle = 0;
     public double shoulderAngle = 0;
   }
 

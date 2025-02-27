@@ -30,7 +30,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
-import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -195,17 +194,19 @@ public class RobotContainer {
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
     // Intake and handoff on bumper press.
 
-    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
+    // controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller.rightBumper().onTrue(ElevatorCommands.goToTier(2, elevator)); // Score L2.
+    controller.leftBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator)); // Score L2.
     // Reset gyro to 0° when B button is pressed
 
-    controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
+    controller
+        .pov(0)
+        .whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator).repeatedly());
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
-    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.3), elevator));
-    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.3), elevator));
-    controller.rightStick().onTrue(Commands.run(() -> elevator.setRAngle(0.25), elevator));
-    controller.leftStick().onTrue(Commands.run(() -> elevator.setRAngle(0.75), elevator));
+    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
+    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));
+    controller.rightStick().onTrue(Commands.runOnce(() -> elevator.setRAngle(0.25), elevator));
+    controller.leftStick().onTrue(Commands.runOnce(() -> elevator.setRAngle(0.75), elevator));
 
     controller
         .b()

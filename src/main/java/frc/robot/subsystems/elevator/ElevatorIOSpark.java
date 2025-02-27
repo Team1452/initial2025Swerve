@@ -56,8 +56,12 @@ public class ElevatorIOSpark implements ElevatorIO {
             ElevatorConstants.kShoulderGains[2],
             ElevatorConstants.kShoulderGains[3]);
     m_twoConfig.apply(m_oneConfig).follow(m_one, ElevatorConstants.motorsInverted);
-    m_shoulderConfig.absoluteEncoder.zeroOffset(ElevatorConstants.kShoulderOffset);
-    // .positionConversionFactor(48);
+    m_shoulderConfig
+        .absoluteEncoder
+        .zeroOffset(ElevatorConstants.kShoulderOffset)
+        .positionConversionFactor(1.0 / 48);
+    ;
+
     SparkUtil.tryUntilOk(
         m_one,
         5,
@@ -91,6 +95,7 @@ public class ElevatorIOSpark implements ElevatorIO {
   public void updateInputs(ElevatorIOInputs inputs) {
 
     inputs.shoulderAngle = m_shoulder.getAbsoluteEncoder().getPosition();
+    inputs.internalAngle = m_shoulder.getEncoder().getPosition();
     // inputs.shoulderAngle = m_shoulder.getEncoder().getPosition(); // make sure this is homed on
     // startup. (Straight up)
     inputs.height = m_one.getEncoder().getPosition();

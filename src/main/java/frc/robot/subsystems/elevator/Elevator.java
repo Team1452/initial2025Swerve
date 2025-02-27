@@ -33,26 +33,30 @@ public class Elevator extends SubsystemBase {
     io.setShoulderAngle(elevatorRAngle); // Set the angle of elevator every cycle. This
     // prevents the elevator from
     // moving when no signal is sent.
-    io.updateInputs(inputs);
+
     Logger.processInputs("Elevator", inputs);
     Logger.recordOutput("Elevator/Height", inputs.height);
-    Logger.recordOutput("Elevator/Angle", inputs.shoulderAngle);
+    Logger.recordOutput("Elevator/RequestedHeight", elevatorRHeight);
+    Logger.recordOutput("Elevator/RequestedAngle", elevatorRAngle);
+    Logger.recordOutput("Elevator/MinHeight", minHeight);
+    Logger.recordOutput("Elevator/AbsoluteAngle", inputs.internalAngle);
+    Logger.recordOutput("Elevator/InternalAngle", inputs.shoulderAngle);
   }
 
   public void adjustRHeight(double height) {
-    elevatorRHeight += height;
-    MathUtil.clamp(
-        elevatorRHeight,
-        minHeight,
-        ElevatorConstants.maxHeight); // Clamp the height between the min and max positions.
+    elevatorRHeight =
+        MathUtil.clamp(
+            elevatorRHeight + height,
+            minHeight,
+            ElevatorConstants.maxHeight); // Clamp the height between the min and max positions.
   }
 
   public void adjustRAngle(double angle) {
-    elevatorRAngle += angle;
+    elevatorRAngle = MathUtil.inputModulus(elevatorRAngle + angle, 0, 1);
     // intakeStateSupplier.getAsBoolean()
     //     ? angle
     //    : // If the intake is open, then set the angle to whatever. Otherwise:
-    //   MathUtil.clamp(angle, 0.3, 0.8); // Ensure that it faces up.
+    //   MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
   }
 
   public void setRHeight(double height) {
@@ -68,7 +72,7 @@ public class Elevator extends SubsystemBase {
         intakeStateSupplier.getAsBoolean()
             ? angle
             : // If the intake is open, then set the angle to whatever. Otherwise:
-            MathUtil.clamp(angle, 0.3, 0.8); // Ensure that it faces up.
+            MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
   }
 
   public double getShoulderAngle() {
@@ -80,7 +84,7 @@ public class Elevator extends SubsystemBase {
   }
 
   private void calcMinHeight() {
-    if (!!intakeStateSupplier.getAsBoolean()) {
+    if (!intakeStateSupplier.getAsBoolean()) {
       minHeight =
           ElevatorConstants
               .intakeHeight; // If the intake is closed, then the min is the lowest height possible

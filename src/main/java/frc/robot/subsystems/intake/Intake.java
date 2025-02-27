@@ -45,6 +45,14 @@ public class Intake extends SubsystemBase {
     return inputs.suckerCurrent;
   }
 
+  public boolean getSuckerStop() {
+    return inputs.suckerCurrent > IntakeConstants.suckerSpikeThreshhold;
+  }
+
+  public boolean getRotatorStop() {
+    return inputs.rotatorCurrent > IntakeConstants.rotatorSpikeThreshhold;
+  }
+
   public double getRotatorCurrent() {
     return inputs.rotatorCurrent;
   }

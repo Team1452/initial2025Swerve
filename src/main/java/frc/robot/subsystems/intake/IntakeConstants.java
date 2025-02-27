@@ -6,7 +6,8 @@ public final class IntakeConstants {
   public static final double intakeSuckSpeed = 0.4; // Adjust speed as needed
   public static final double intakeHandOffAngle = -2;
   public static final double INTAKE_OPEN_ANGLE = 17;
-  public static final int suckerSpikeThreshhold = 60;
+  public static final int suckerSpikeThreshhold = 20;
+  public static final int rotatorSpikeThreshhold = 20;
 
   public static final boolean reversedRotator = true;
   public static final boolean reversedSucker = true;

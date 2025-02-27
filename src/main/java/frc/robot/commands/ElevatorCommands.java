@@ -32,7 +32,9 @@ public class ElevatorCommands {
         () -> {
           // Trigger's base pos is 0.5, max is 1. So we'll subtract 0.5 and multiply by 2 to get a
           // range of 0 to 1.
-          elevator.adjustRAngle(Math.pow((trigger.getAsDouble() - 0.5) * 2, 3)); // Cube the value.
+          elevator.adjustRAngle(
+              (inverse.getAsBoolean() ? 1 : -1)
+                  * Math.pow((trigger.getAsDouble() - 0.5) * 2, 3)); // Cube the value.
         },
         elevator);
   }
@@ -59,7 +61,7 @@ public class ElevatorCommands {
 
   public static Command pickUpCoralFromIntake(Elevator elevator) {
     return Commands.sequence(
-        Commands.run(
+        Commands.runOnce(
             () -> {
               elevator.setRAngle(0.75); // Move the arm down.
               elevator.setRHeight(
@@ -71,7 +73,7 @@ public class ElevatorCommands {
             () ->
                 MathUtil.isNear(
                     0.75, elevator.getShoulderAngle(), 0.01)), // Wait until the arm is down,
-        goToTier(0, elevator) // Then move down to the coral. to intake it.
+        goToTier(0, elevator) // Then move down to the coral to intake it.
         );
   }
 }
