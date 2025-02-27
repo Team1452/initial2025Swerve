@@ -7,6 +7,7 @@ public interface IntakeIO {
   public static class IntakeIOInputs {
     public double intakeAngle = 0;
     public double suckerCurrent = 0;
+    public double rotatorCurrent = 0;
     public boolean intakeOpen = false; // Whether the intake is open or closed
   }
 

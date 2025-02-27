@@ -194,10 +194,19 @@ public class RobotContainer {
     // Run intake routine when Y button is pressed
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
     // Intake and handoff on bumper press.
+
     controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller.rightBumper().onTrue(ElevatorCommands.placeOnTier(2, elevator)); // Score L2.
+    controller.rightBumper().onTrue(ElevatorCommands.goToTier(2, elevator)); // Score L2.
     // Reset gyro to 0° when B button is pressed
+
+    controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
+    controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
+    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.3), elevator));
+    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.3), elevator));
+    controller.rightStick().onTrue(Commands.run(() -> elevator.setRAngle(0.25), elevator));
+    controller.leftStick().onTrue(Commands.run(() -> elevator.setRAngle(0.75), elevator));
+
     controller
         .b()
         .onTrue(

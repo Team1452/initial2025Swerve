@@ -18,14 +18,14 @@ public class ElevatorConstants {
     0.2, // P
     0, // I
     0, // D
-    0 // F
+    0.01 // F
   };
   public static final double kShoulderOffset =
       0.7566
           - 0.25; // Make the offset have right as 0, rather than up. 0.7566 is the offset for when
   // 0 is up.
   public static final double shoulderLength = 20;
-  public static final double maxHeight = 42;
-  public static final double intakeHeight = 25;
-  public static final int klimitSwitchPort = 3;
+  public static final double maxHeight = 40;
+  public static final double intakeHeight = 10;
+  public static final int klimitSwitchPort = 1;
 }

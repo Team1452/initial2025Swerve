@@ -57,8 +57,9 @@ public class IntakeIOSpark implements IntakeIO {
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
     inputs.suckerCurrent = m_sucker.getOutputCurrent();
+    inputs.rotatorCurrent = m_rotator.getOutputCurrent();
     inputs.intakeAngle = m_rotator.getEncoder().getPosition(); // Position in rotations
     inputs.intakeOpen =
-        inputs.intakeAngle < IntakeConstants.intakeHandOffAngle; // If the intake is open
+        inputs.intakeAngle > IntakeConstants.intakeHandOffAngle; // If the intake is open
   }
 }

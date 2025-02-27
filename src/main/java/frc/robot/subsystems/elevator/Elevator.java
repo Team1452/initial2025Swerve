@@ -2,19 +2,19 @@ package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.elevator.ElevatorIO.ElevatorIOInputs;
 import java.util.function.BooleanSupplier;
+import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
   // Hardware interface for the elevator.
   private final ElevatorIO io;
   public static double elevatorRHeight = 0;
-  public static double elevatorRAngle = 0.25;
+  public static double elevatorRAngle = 0.5;
   public static double minHeight = 0;
   BooleanSupplier intakeStateSupplier;
 
   // Inputs from the elevator hardware.
-  private final ElevatorIOInputs inputs = new ElevatorIOInputs();
+  private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   /**
    * @param io The interfce)
    */
@@ -33,6 +33,10 @@ public class Elevator extends SubsystemBase {
     io.setShoulderAngle(elevatorRAngle); // Set the angle of elevator every cycle. This
     // prevents the elevator from
     // moving when no signal is sent.
+    io.updateInputs(inputs);
+    Logger.processInputs("Elevator", inputs);
+    Logger.recordOutput("Elevator/Height", inputs.height);
+    Logger.recordOutput("Elevator/Angle", inputs.shoulderAngle);
   }
 
   public void adjustRHeight(double height) {
@@ -44,11 +48,11 @@ public class Elevator extends SubsystemBase {
   }
 
   public void adjustRAngle(double angle) {
-    elevatorRAngle +=
-        intakeStateSupplier.getAsBoolean()
-            ? angle
-            : // If the intake is open, then set the angle to whatever. Otherwise:
-            MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
+    elevatorRAngle += angle;
+    // intakeStateSupplier.getAsBoolean()
+    //     ? angle
+    //    : // If the intake is open, then set the angle to whatever. Otherwise:
+    //   MathUtil.clamp(angle, 0.3, 0.8); // Ensure that it faces up.
   }
 
   public void setRHeight(double height) {
@@ -64,7 +68,7 @@ public class Elevator extends SubsystemBase {
         intakeStateSupplier.getAsBoolean()
             ? angle
             : // If the intake is open, then set the angle to whatever. Otherwise:
-            MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
+            MathUtil.clamp(angle, 0.3, 0.8); // Ensure that it faces up.
   }
 
   public double getShoulderAngle() {

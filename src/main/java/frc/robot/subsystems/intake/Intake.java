@@ -1,12 +1,13 @@
 package frc.robot.subsystems.intake;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public class Intake extends SubsystemBase {
   // The hardware interface for the intake subsystem.
   private final IntakeIO io;
 
-  private final IntakeIO.IntakeIOInputs inputs = new IntakeIO.IntakeIOInputs();
+  private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
   public Intake(IntakeIO io) {
     this.io = io;
@@ -16,9 +17,13 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
+    Logger.processInputs("Intake", inputs);
+    Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
+    Logger.recordOutput("Intake/IntakeOpen", inputs.intakeOpen);
+    Logger.recordOutput("Intake/rotatorCurrent", inputs.rotatorCurrent);
   }
 
-  /** Spins the sucker roller using the configured suck speed. */
+  /** Spins the sucker roller using the aconfigured suck speed. */
   public void spinSucker(boolean forward) {
     io.setSuckerVelocity(
         forward ? IntakeConstants.intakeSuckSpeed : -IntakeConstants.intakeSuckSpeed);
@@ -28,12 +33,20 @@ public class Intake extends SubsystemBase {
     io.setSuckerVelocity(speed);
   }
 
+  public void suckSucker() {
+    io.setSuckerVelocity(0.4);
+  }
+
   public void stopSucker() {
     io.setSuckerVelocity(0);
   }
 
   public double getSuckerCurrent() {
     return inputs.suckerCurrent;
+  }
+
+  public double getRotatorCurrent() {
+    return inputs.rotatorCurrent;
   }
 
   public void rotateOutIntake() {
