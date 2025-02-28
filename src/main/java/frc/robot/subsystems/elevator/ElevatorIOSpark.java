@@ -59,7 +59,7 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_shoulderConfig
         .absoluteEncoder
         .zeroOffset(ElevatorConstants.kShoulderOffset)
-        .positionConversionFactor(1.0 / 48);
+        .positionConversionFactor(ElevatorConstants.kShoulderConversionFactor);
     ;
 
     SparkUtil.tryUntilOk(
