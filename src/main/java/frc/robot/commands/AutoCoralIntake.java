@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import java.util.function.DoubleSupplier;
@@ -55,7 +56,11 @@ public class AutoCoralIntake extends SequentialCommandGroup {
    *     -1.0 to 1.0).
    */
   public AutoCoralIntake(
-      Drive drive, Vision vision, Intake intake, DoubleSupplier forwardSupplier) {
+      Drive drive,
+      Vision vision,
+      Intake intake,
+      Elevator elevator,
+      DoubleSupplier forwardSupplier) {
     // Create a rotation supplier that uses vision to guide the desired angle.
     // The setpoint is computed as the robot's current heading plus the vision yaw error.
     // This provides a continuously updated target for the built-in PID in joystickDriveAtAngle.
@@ -82,6 +87,6 @@ public class AutoCoralIntake extends SequentialCommandGroup {
         // Phase 3: Stop the drivetrain.
         new InstantCommand(drive::stop, drive),
         // Phase 4: Execute the coral intake routine.
-        IntakeCommands.runIntakeRoutine(intake));
+        IntakeCommands.runIntakeRoutine(intake, elevator));
   }
 }

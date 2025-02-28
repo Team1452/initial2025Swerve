@@ -45,22 +45,19 @@ public class ElevatorIOSpark implements ElevatorIO {
         .inverted(false)
         .idleMode(IdleMode.kBrake)
         .closedLoop
-        .maxOutput(1) // Limit speed
-        .minOutput(-1) // Limit speed
+        .maxOutput(0.35) // Limit speed
+        .minOutput(-0.35) // Limit speed
         .positionWrappingEnabled(true)
         .positionWrappingInputRange(0, 1)
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
         .pidf(
             ElevatorConstants.kShoulderGains[0],
             ElevatorConstants.kShoulderGains[1],
             ElevatorConstants.kShoulderGains[2],
             ElevatorConstants.kShoulderGains[3]);
     m_twoConfig.apply(m_oneConfig).follow(m_one, ElevatorConstants.motorsInverted);
-    m_shoulderConfig
-        .absoluteEncoder
-        .zeroOffset(ElevatorConstants.kShoulderOffset)
-        .positionConversionFactor(ElevatorConstants.kShoulderConversionFactor);
-    ;
+    m_shoulderConfig.encoder.positionConversionFactor(ElevatorConstants.kShoulderConversionFactor);
+    m_shoulderConfig.absoluteEncoder.zeroOffset(ElevatorConstants.kShoulderOffset).inverted(true);
 
     SparkUtil.tryUntilOk(
         m_one,

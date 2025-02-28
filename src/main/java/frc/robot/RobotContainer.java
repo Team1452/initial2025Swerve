@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -196,12 +197,12 @@ public class RobotContainer {
 
     // controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller.leftBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator)); // Score L2.
+    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake, elevator)); // Score L2.
+    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
+    controller.rightBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator)); // Score L2.
     // Reset gyro to 0° when B button is pressed
 
-    controller
-        .pov(0)
-        .whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator).repeatedly());
+    controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
     controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
     controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));

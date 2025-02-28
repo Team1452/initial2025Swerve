@@ -21,6 +21,7 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
     Logger.recordOutput("Intake/IntakeOpen", inputs.intakeOpen);
     Logger.recordOutput("Intake/rotatorCurrent", inputs.rotatorCurrent);
+    Logger.recordOutput("Intake/suckerSpeed", inputs.suckerSpeed);
   }
 
   /** Spins the sucker roller using the aconfigured suck speed. */
@@ -46,11 +47,15 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean getSuckerStop() {
-    return inputs.suckerCurrent > IntakeConstants.suckerSpikeThreshhold;
+    return inputs.suckerSpeed < 2;
   }
 
-  public boolean getRotatorStop() {
-    return inputs.rotatorCurrent > IntakeConstants.rotatorSpikeThreshhold;
+  public boolean getRotatorStopForward() {
+    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > 8;
+  }
+
+  public boolean getRotatorStopBack() {
+    return inputs.rotatorSpeed < 10 && inputs.intakeAngle < -1.5;
   }
 
   public double getRotatorCurrent() {

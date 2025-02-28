@@ -66,14 +66,16 @@ public class ElevatorCommands {
               elevator.setRAngle(0.75); // Move the arm down.
               elevator.setRHeight(
                   ElevatorConstants.kElevatorHeights[0]
-                      + 3); // Move the elevator to above the handoff height.
+                      + 7); // Move the elevator to above the handoff height.
             },
             elevator),
         Commands.waitUntil(
             () ->
                 MathUtil.isNear(
-                    0.75, elevator.getShoulderAngle(), 0.01)), // Wait until the arm is down,
-        goToTier(0, elevator) // Then move down to the coral to intake it.
-        );
+                    0.75, elevator.getShoulderAngle(), 0.003)), // Wait until the arm is down,
+        goToTier(0, elevator), // Then move down to the coral to intake it.
+        Commands.runOnce(()-> elevator.setRHeight(ElevatorConstants.kElevatorHeights[0] + 7),elevator),
+        Commands.waitUntil(()->elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 2),
+        Commands.runOnce(() ->elevator.setRAngle(0.25)));
   }
 }

@@ -9,7 +9,7 @@ public class Elevator extends SubsystemBase {
   // Hardware interface for the elevator.
   private final ElevatorIO io;
   public static double elevatorRHeight = 0;
-  public static double elevatorRAngle = 0.5;
+  public static double elevatorRAngle = 0.25;
   public static double minHeight = 0;
   BooleanSupplier intakeStateSupplier;
 
@@ -52,7 +52,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void adjustRAngle(double angle) {
-    elevatorRAngle = MathUtil.inputModulus(elevatorRAngle + angle, 0, 1);
+    elevatorRAngle += angle;
     // intakeStateSupplier.getAsBoolean()
     //     ? angle
     //    : // If the intake is open, then set the angle to whatever. Otherwise:
@@ -68,11 +68,11 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setRAngle(double angle) {
-    elevatorRAngle =
-        intakeStateSupplier.getAsBoolean()
-            ? angle
-            : // If the intake is open, then set the angle to whatever. Otherwise:
-            MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
+    elevatorRAngle = angle;
+    // intakeStateSupplier.getAsBoolean()
+    //   ? angle
+    // : // If the intake is open, then set the angle to whatever. Otherwise:
+    // MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
   }
 
   public double getShoulderAngle() {
@@ -81,6 +81,10 @@ public class Elevator extends SubsystemBase {
 
   public void resetEncoder() {
     io.resetEncoder();
+  }
+
+  public double getHeight() {
+    return inputs.height;
   }
 
   private void calcMinHeight() {
@@ -97,8 +101,7 @@ public class Elevator extends SubsystemBase {
               ? // if the shoulder is facing down:
               Math.abs( // Then return the abs value of the length of the shoulder times the sin of
                   // the shoulder angle. Who doesn't love trig?
-                  ElevatorConstants.shoulderLength
-                      * Math.sin((inputs.shoulderAngle * 2 * Math.PI) + Math.PI / 2))
+                  ElevatorConstants.shoulderLength * Math.sin((inputs.shoulderAngle * 2 * Math.PI)))
               : 0; // Otherwise, return 0, as that is the minimum height set by the limit switch.
     }
   }
