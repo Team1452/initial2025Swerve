@@ -27,14 +27,11 @@ public class ElevatorCommands {
   }
 
   public static Command microAdjustShoulderWithTrigger(
-      DoubleSupplier trigger, BooleanSupplier inverse, Elevator elevator) {
+      DoubleSupplier triggerOne, DoubleSupplier triggerTwo, Elevator elevator) {
+      double triggerSum;
     return Commands.run(
         () -> {
-          // Trigger's base pos is 0.5, max is 1. So we'll subtract 0.5 and multiply by 2 to get a
-          // range of 0 to 1.
-          elevator.adjustRAngle(
-              (inverse.getAsBoolean() ? 1 : -1)
-                  * Math.pow((trigger.getAsDouble() - 0.5) * 2, 3)); // Cube the value.
+          elevator.adjustRAngle(Math.pow((triggerOne.getAsDouble() - 0.5) * 2, 3) - Math.pow((triggerTwo.getAsDouble() - 0.5) * 2, 3)); 
         },
         elevator);
   }
