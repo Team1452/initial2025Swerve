@@ -184,8 +184,18 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
+    // Lock to 0° when A button is held
+    controller
+        .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> new Rotation2d()));
+
     // Run intake routine when Y button is pressed
-    controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
+    controller.y().whileTrue(new AlignToCoral(drive, vision, 2, ()->-controller.getLeftY(), ()->-controller.getLeftX()));
     // Intake and handoff on bumper press.
     fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
     fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
@@ -215,6 +225,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+                
   }
 
   /**
