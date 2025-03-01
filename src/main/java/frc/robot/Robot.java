@@ -127,12 +127,15 @@ public class Robot extends LoggedRobot {
     // if (autonomousCommand != null) {
       // autonomousCommand.schedule();
     //}
+
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-     drive.runVelocity(new ChassisSpeeds(-1, 0.0, 0.0));
+    drive.runVelocity(
+      ChassisSpeeds.fromFieldRelativeSpeeds(
+          new ChassisSpeeds(-5, 0.0, 0), drive.getRotation()));
   }
 
   /** This function is called once when teleop is enabled. */
