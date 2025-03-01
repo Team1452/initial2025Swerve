@@ -195,7 +195,11 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Run intake routine when Y button is pressed
-    controller.y().whileTrue(new AlignToCoral(drive, vision, 2, ()->-controller.getLeftY(), ()->-controller.getLeftX()));
+    controller
+        .y()
+        .whileTrue(
+            new AlignToCoral(
+                drive, vision, 2, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
     // Intake and handoff on bumper press.
     fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
     fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
@@ -225,7 +229,6 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-                
   }
 
   /**
@@ -234,6 +237,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return new ExitStartingAreaAuto(drive);
+    return autoChooser.get();
   }
 }

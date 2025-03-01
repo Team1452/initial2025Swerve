@@ -1,7 +1,5 @@
 package frc.robot.commands.autos;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
@@ -23,8 +21,6 @@ public class ExitStartingAreaAuto extends SequentialCommandGroup {
     // The setpoint is computed as the robot's current heading plus the vision yaw error.
     // This provides a continuously updated target for the built-in PID in joystickDriveAtAngle.
 
-    addCommands(
-      DriveCommands.joystickDrive(drive, () -> -5, () -> 0, () -> 0)
-    );
+    addCommands(DriveCommands.joystickDrive(drive, () -> -5, () -> 0, () -> 0));
   }
 }

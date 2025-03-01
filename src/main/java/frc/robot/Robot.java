@@ -13,7 +13,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -23,7 +22,6 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
-import frc.robot.subsystems.drive.Drive;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -33,8 +31,6 @@ import frc.robot.subsystems.drive.Drive;
  */
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
-  private RobotContainer robotContainer;
-  private Drive drive;
 
   public Robot() {
     // Record metadata
@@ -85,9 +81,7 @@ public class Robot extends LoggedRobot {
     // Start AdvantageKit logger
     Logger.start();
 
-    // Instantiate our RobotContainer. This will perform all our button bindings,
-    // and put our autonomous chooser on the dashboard.
-    robotContainer = new RobotContainer();
+    new RobotContainer();
   }
 
   /** This function is called periodically during all modes. */
@@ -121,21 +115,18 @@ public class Robot extends LoggedRobot {
   @Override
   public void autonomousInit() {
 
-    //autonomousCommand = robotContainer.getAutonomousCommand();
+    // autonomousCommand = robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
     // if (autonomousCommand != null) {
-      // autonomousCommand.schedule();
-    //}
+    // autonomousCommand.schedule();
+    // }
 
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    drive.runVelocity(
-      ChassisSpeeds.fromFieldRelativeSpeeds(
-          new ChassisSpeeds(-5, 0.0, 0), drive.getRotation()));
   }
 
   /** This function is called once when teleop is enabled. */
