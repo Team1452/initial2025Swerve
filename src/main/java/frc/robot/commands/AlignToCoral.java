@@ -14,13 +14,17 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 /**
@@ -55,7 +59,8 @@ public class AlignToCoral extends Command {
 
   // The coral target is assumed to be provided by camera index 2.
   private final int cameraIndex;
-  private DoubleSupplier forwardSupplier;
+  private DoubleSupplier xSupplier;
+  private DoubleSupplier ySupplier;
   private boolean aligned;
 
   public double omega;
@@ -69,7 +74,7 @@ public class AlignToCoral extends Command {
    * @param forwardSupplier A DoubleSupplier for forward drive input (usually from a joystick, range
    *     -1.0 to 1.0).
    */
-  public AlignToCoral(Drive drive, Vision vision, int cameraIndex) {
+  public AlignToCoral(Drive drive, Vision vision, int cameraIndex, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
     this.drive = drive;
     this.vision = vision;
     this.cameraIndex = cameraIndex;
@@ -85,6 +90,8 @@ public class AlignToCoral extends Command {
     this.angleController.enableContinuousInput(-Math.PI, Math.PI);
 
     addRequirements(drive);
+    this.xSupplier = xSupplier;
+    this.ySupplier = ySupplier;
   }
 
   @Override
@@ -114,13 +121,14 @@ public class AlignToCoral extends Command {
         // We want to reduce the error to 0 so the setpoint is 0.
         omega = angleController.calculate(targetError, 0.0);
 
+        Supplier<Rotation2d> rotationSupplier =
+        () -> drive.getRotation().minus(new Rotation2d(omega));
+
+
         // Command the drive with zero linear speed and the calculated angular speed.
         // We use field-relative speeds even for a pure rotation.
-        if (Math.abs(target.getYaw()) > 1) {
-          drive.runVelocity(
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  new ChassisSpeeds(0.0, 0.0, omega), drive.getRotation()));
-        }
+        DriveCommands.joystickDriveAtAngle(drive, xSupplier, ySupplier, rotationSupplier);
+
       }
     }
   }

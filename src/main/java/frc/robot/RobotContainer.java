@@ -32,6 +32,7 @@ import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.IntakeCommands;
+import frc.robot.commands.autos.ExitStartingAreaAuto;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -183,8 +184,18 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
+    // Lock to 0° when A button is held
+    controller
+        .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> new Rotation2d()));
+
     // Run intake routine when Y button is pressed
-    controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
+    controller.y().whileTrue(new AlignToCoral(drive, vision, 2, ()->-controller.getLeftY(), ()->-controller.getLeftX()));
     // Intake and handoff on bumper press.
     fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
     fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
@@ -192,20 +203,19 @@ public class RobotContainer {
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
 
-    controller.leftBumper().whileTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
-    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake));
-    controller.rightBumper().whileTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake));
+    // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
+    // Score on right bumper
+    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
+    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
+    controller
+        .rightBumper()
+        .onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); // Score L2.
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
     controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
     controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));
-    controller
-        .a()
-        .whileTrue(
-            ElevatorCommands.microAdjustShoulderWithTrigger(
-                controller::getLeftTriggerAxis, controller::getRightTriggerAxis, elevator));
 
     controller
         .b()
@@ -216,6 +226,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+                
   }
 
   /**
@@ -224,6 +235,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return new ExitStartingAreaAuto(drive);
   }
 }
