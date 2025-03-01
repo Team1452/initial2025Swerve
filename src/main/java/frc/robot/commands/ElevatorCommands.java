@@ -27,7 +27,6 @@ public class ElevatorCommands {
 
   public static Command microAdjustShoulderWithTrigger(
       DoubleSupplier triggerOne, DoubleSupplier triggerTwo, Elevator elevator) {
-    double triggerSum;
     return Commands.run(
         () -> {
           elevator.adjustRAngle(
