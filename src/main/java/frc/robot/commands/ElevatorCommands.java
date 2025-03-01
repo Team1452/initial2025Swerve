@@ -25,17 +25,6 @@ public class ElevatorCommands {
         });
   }
 
-  public static Command microAdjustShoulderWithTrigger(
-      DoubleSupplier triggerOne, DoubleSupplier triggerTwo, Elevator elevator) {
-    return Commands.run(
-        () -> {
-          elevator.adjustRAngle(
-              Math.pow((triggerOne.getAsDouble() - 0.5) * 2, 3)
-                  - Math.pow((triggerTwo.getAsDouble() - 0.5) * 2, 3));
-        },
-        elevator);
-  }
-
   public static Command goToTier(int tier, Elevator elevator) {
     return Commands.runOnce(
         () -> {

@@ -87,6 +87,6 @@ public class AutoCoralIntake extends SequentialCommandGroup {
         // Phase 3: Stop the drivetrain.
         new InstantCommand(drive::stop, drive),
         // Phase 4: Execute the coral intake routine.
-        IntakeCommands.runIntakeRoutine(intake, elevator));
+        IntakeCommands.runIntakeRoutine(() -> false, intake, elevator));
   }
 }

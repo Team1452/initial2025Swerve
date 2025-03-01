@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.intake.Intake;
+import java.util.function.BooleanSupplier;
 
 public class IntakeCommands {
   private IntakeCommands() {}
@@ -17,7 +18,8 @@ public class IntakeCommands {
         Commands.runOnce(intake::stopIntake, intake));
   }
 
-  public static Command runIntakeRoutine(Intake intake, Elevator elevator) {
+  public static Command runIntakeRoutine(
+      BooleanSupplier interrupt, Intake intake, Elevator elevator) {
     return Commands.sequence(
             Commands.runOnce(intake::suckSucker, intake),
             Commands.runOnce(intake::rotateOutIntake, intake),
@@ -42,16 +44,13 @@ public class IntakeCommands {
             Commands.runOnce(intake::stopIntake, intake),
             Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
             )
-        .handleInterrupt(
-            () -> {
-              intake.stopIntake();
-              intake.stopSucker();
-            });
+        .handleInterrupt(intake::rotateInDead)
+        .onlyWhile(() -> !interrupt.getAsBoolean());
   }
 
   public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
     return Commands.sequence(
-        runIntakeRoutine(intake, elevator), // Pick up a coral
+        runIntakeRoutine(() -> false, intake, elevator), // Pick up a coral
         ElevatorCommands.pickUpCoralFromIntake(elevator, intake) // And handoff to the elevator.
         );
   }

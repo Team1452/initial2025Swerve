@@ -32,6 +32,7 @@ import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.IntakeCommands;
+import frc.robot.commands.autos.ExitStartingAreaAuto;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -192,20 +193,18 @@ public class RobotContainer {
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
 
-    controller.leftBumper().whileTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
+    controller
+        .leftBumper()
+        .onTrue(
+            IntakeCommands.runIntakeRoutine(() -> controller.a().getAsBoolean(), intake, elevator));
     // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake));
-    controller.rightBumper().whileTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake));
+    controller.rightBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake));
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
-    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
-    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));
-    controller
-        .a()
-        .whileTrue(
-            ElevatorCommands.microAdjustShoulderWithTrigger(
-                controller::getLeftTriggerAxis, controller::getRightTriggerAxis, elevator));
+    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.008), elevator));
+    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.008), elevator));
 
     controller
         .b()
@@ -224,6 +223,6 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return new ExitStartingAreaAuto(drive);
   }
 }

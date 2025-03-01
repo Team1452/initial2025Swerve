@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -68,6 +69,12 @@ public class Intake extends SubsystemBase {
 
   public void rotateInIntake() {
     io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
+  }
+
+  public void rotateInDead() {
+    io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
+    Commands.waitSeconds(0.5);
+    stopIntake();
   }
 
   public void stopIntake() {
