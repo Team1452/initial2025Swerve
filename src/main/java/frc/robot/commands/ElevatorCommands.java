@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.intake.Intake;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 public class ElevatorCommands {
@@ -28,10 +27,12 @@ public class ElevatorCommands {
 
   public static Command microAdjustShoulderWithTrigger(
       DoubleSupplier triggerOne, DoubleSupplier triggerTwo, Elevator elevator) {
-      double triggerSum;
+    double triggerSum;
     return Commands.run(
         () -> {
-          elevator.adjustRAngle(Math.pow((triggerOne.getAsDouble() - 0.5) * 2, 3) - Math.pow((triggerTwo.getAsDouble() - 0.5) * 2, 3)); 
+          elevator.adjustRAngle(
+              Math.pow((triggerOne.getAsDouble() - 0.5) * 2, 3)
+                  - Math.pow((triggerTwo.getAsDouble() - 0.5) * 2, 3));
         },
         elevator);
   }
@@ -47,15 +48,15 @@ public class ElevatorCommands {
 
   public static Command goToTier(int tier, Elevator elevator, Intake intake) {
     return Commands.parallel(
-        Commands.runOnce(
-            () -> {
-              elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
-            } // Set the height to the height based on a list of tier heights.
-            ,
-            elevator),
-        Commands.runOnce(intake::rotateOutIntake, intake).onlyWhile(() -> !intake.getIntakeOpen())).onlyIf(
-        ()->ElevatorConstants.kElevatorHeights[tier] <= ElevatorConstants.intakeHeight
-        );
+            Commands.runOnce(
+                () -> {
+                  elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
+                } // Set the height to the height based on a list of tier heights.
+                ,
+                elevator),
+            Commands.runOnce(intake::rotateOutIntake, intake)
+                .onlyWhile(() -> !intake.getIntakeOpen()))
+        .onlyIf(() -> ElevatorConstants.kElevatorHeights[tier] <= ElevatorConstants.intakeHeight);
   }
 
   public static Command place(Elevator elevator) {

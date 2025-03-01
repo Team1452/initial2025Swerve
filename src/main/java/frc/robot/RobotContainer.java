@@ -183,7 +183,6 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    
     // Run intake routine when Y button is pressed
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
     // Intake and handoff on bumper press.
@@ -202,7 +201,11 @@ public class RobotContainer {
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
     controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
     controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));
-    controller.a().whileTrue(ElevatorCommands.microAdjustShoulderWithTrigger(controller::getLeftTriggerAxis, controller::getRightTriggerAxis, elevator));
+    controller
+        .a()
+        .whileTrue(
+            ElevatorCommands.microAdjustShoulderWithTrigger(
+                controller::getLeftTriggerAxis, controller::getRightTriggerAxis, elevator));
 
     controller
         .b()
