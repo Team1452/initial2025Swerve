@@ -84,7 +84,9 @@ public class ElevatorCommands {
                 MathUtil.isNear(
                     0.75, elevator.getShoulderAngle(), 0.005)), // Wait until the arm is down,
         goToTier(0, elevator), // Then move down to the coral to intake it.
-        Commands.waitUntil(()-> MathUtil.isNear(ElevatorConstants.kElevatorHeights[0], elevator.getHeight(), 0.05)),
+        Commands.waitUntil(
+            () ->
+                MathUtil.isNear(ElevatorConstants.kElevatorHeights[0], elevator.getHeight(), 0.05)),
         Commands.runOnce(
             () -> elevator.setRHeight(ElevatorConstants.kElevatorHeights[0] + 7), elevator),
         Commands.waitUntil(() -> elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 2),

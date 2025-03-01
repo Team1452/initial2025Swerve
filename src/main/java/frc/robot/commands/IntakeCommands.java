@@ -19,32 +19,34 @@ public class IntakeCommands {
 
   public static Command runIntakeRoutine(Intake intake, Elevator elevator) {
     return Commands.sequence(
-        Commands.runOnce(intake::suckSucker, intake),
-        Commands.runOnce(intake::rotateOutIntake, intake),
-        Commands.waitUntil(intake::getRotatorStopForward),
-        Commands.runOnce(intake::stopIntake, intake),
-        Commands.waitUntil(intake::getSuckerStop),
-        Commands.runOnce(intake::stopSucker, intake),
-        Commands.runOnce(
+            Commands.runOnce(intake::suckSucker, intake),
+            Commands.runOnce(intake::rotateOutIntake, intake),
+            Commands.waitUntil(intake::getRotatorStopForward),
+            Commands.runOnce(intake::stopIntake, intake),
+            Commands.waitUntil(intake::getSuckerStop),
+            Commands.runOnce(intake::stopSucker, intake),
+            Commands.runOnce(
+                () -> {
+                  if (elevator.getHeight() < ElevatorConstants.intakeHeight) {
+                    elevator.setRHeight(ElevatorConstants.intakeHeight + 2);
+                  }
+                  intake.rotateInIntake(); // Once we have a coral, start going back in.
+                  intake.spinSucker(
+                      0.03); // Spin the sucker slightly to keep the coral during rotation in.
+                },
+                intake),
+            Commands.waitUntil(
+                intake::getRotatorStopBack), // Wait until it's in the handoff position
+            Commands.runOnce(() -> intake.spinSucker(-0.1), intake), // Spit out.
+            Commands.waitSeconds(0.02),
+            Commands.runOnce(intake::stopIntake, intake),
+            Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
+            )
+        .handleInterrupt(
             () -> {
-              if (elevator.getHeight() < ElevatorConstants.intakeHeight) {
-                elevator.setRHeight(ElevatorConstants.intakeHeight + 2);
-              }
-              intake.rotateInIntake(); // Once we have a coral, start going back in.
-              intake.spinSucker(
-                  0.03); // Spin the sucker slightly to keep the coral during rotation in.
-            },
-            intake),
-        Commands.waitUntil(intake::getRotatorStopBack), // Wait until it's in the handoff position
-        Commands.runOnce(() -> intake.spinSucker(-0.1), intake), // Spit out.
-        Commands.waitSeconds(0.02),
-        Commands.runOnce(intake::stopIntake, intake),
-        Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
-        ).handleInterrupt( ()-> {
-          intake.stopIntake();
-          intake.stopSucker();
-        }
-        );
+              intake.stopIntake();
+              intake.stopSucker();
+            });
   }
 
   public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
