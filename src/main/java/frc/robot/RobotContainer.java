@@ -18,7 +18,6 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -145,7 +144,7 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
+    /* 
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -161,7 +160,9 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addDefaultOption("default", getAutonomousCommand());
+    */
+    autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
+    
 
     DigitalInput elevatorlimitSwtich = new DigitalInput(ElevatorConstants.klimitSwitchPort);
     Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);
@@ -196,7 +197,11 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Run intake routine when Y button is pressed
-    controller.y().whileTrue(new AlignToCoral(drive, vision, 2, ()->-controller.getLeftY(), ()->-controller.getLeftX()));
+    controller
+        .y()
+        .whileTrue(
+            new AlignToCoral(
+                drive, vision, 2, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
     // Intake and handoff on bumper press.
     fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
     fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
@@ -230,7 +235,6 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-                
   }
 
   /**

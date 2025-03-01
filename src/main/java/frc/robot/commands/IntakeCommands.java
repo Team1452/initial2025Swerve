@@ -9,6 +9,7 @@ import java.util.function.BooleanSupplier;
 
 public class IntakeCommands {
   private IntakeCommands() {}
+  static boolean hasCoral;;
 
   public static Command rotateOut(Intake intake) {
     return Commands.sequence(
@@ -19,13 +20,13 @@ public class IntakeCommands {
   }
 
   public static Command runIntakeRoutine(
-      BooleanSupplier interrupt, Intake intake, Elevator elevator) {
+      Intake intake, Elevator elevator) {
     return Commands.sequence(
             Commands.runOnce(intake::suckSucker, intake),
             Commands.runOnce(intake::rotateOutIntake, intake),
             Commands.waitUntil(intake::getRotatorStopForward),
             Commands.runOnce(intake::stopIntake, intake),
-            Commands.waitUntil(intake::getSuckerStop),
+            Commands.waitUntil(intake::getSuckerStop).withDeadline(Commands.waitSeconds(10)),
             Commands.runOnce(intake::stopSucker, intake),
             Commands.runOnce(
                 () -> {
@@ -41,13 +42,12 @@ public class IntakeCommands {
                 intake::getRotatorStopBack), // Wait until it's in the handoff position
             Commands.runOnce(intake::stopIntake, intake),
             Commands.runOnce(intake::stopSucker, intake))
-        .handleInterrupt(intake::rotateInDead)
-        .onlyWhile(() -> !interrupt.getAsBoolean());
+        ;
   }
 
   public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
     return Commands.sequence(
-        runIntakeRoutine(() -> false, intake, elevator), // Pick up a coral
+        runIntakeRoutine(intake, elevator), // Pick up a coral
         ElevatorCommands.pickUpCoralFromIntake(elevator, intake) // And handoff to the elevator.
         );
   }
