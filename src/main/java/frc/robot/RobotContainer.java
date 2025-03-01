@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -65,6 +66,7 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandGenericHID fightBox = new CommandGenericHID(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -194,20 +196,25 @@ public class RobotContainer {
     // Run intake routine when Y button is pressed
     controller.y().whileTrue(new AlignToCoral(drive, vision, 2));
     // Intake and handoff on bumper press.
+    fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
+    fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
+    fightBox.button(6).onTrue(ElevatorCommands.goToTier(3, elevator, intake));
+    fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
+    fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
 
-    // controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake));
+    // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake, elevator)); // Score L2.
+    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
     // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
-    controller.rightBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator)); // Score L2.
+    controller
+        .rightBumper()
+        .onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); // Score L2.
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
     controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.01), elevator));
     controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.01), elevator));
-    controller.rightStick().onTrue(Commands.runOnce(() -> elevator.setRAngle(0.25), elevator));
-    controller.leftStick().onTrue(Commands.runOnce(() -> elevator.setRAngle(0.75), elevator));
 
     controller
         .b()

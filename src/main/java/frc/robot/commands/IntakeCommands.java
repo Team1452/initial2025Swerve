@@ -9,7 +9,6 @@ import frc.robot.subsystems.intake.Intake;
 public class IntakeCommands {
   private IntakeCommands() {}
 
-  
   public static Command rotateOut(Intake intake) {
     return Commands.sequence(
         Commands.runOnce(intake::rotateOutIntake, intake),
@@ -37,9 +36,9 @@ public class IntakeCommands {
             },
             intake),
         Commands.waitUntil(intake::getRotatorStopBack), // Wait until it's in the handoff position
-        Commands.runOnce(()->intake.spinSucker(-0.1), intake), // Spit out.
+        Commands.runOnce(() -> intake.spinSucker(-0.1), intake), // Spit out.
         Commands.waitSeconds(0.02),
-        Commands.runOnce(intake::stopIntake,intake),
+        Commands.runOnce(intake::stopIntake, intake),
         Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
         );
   }
@@ -47,7 +46,7 @@ public class IntakeCommands {
   public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
     return Commands.sequence(
         runIntakeRoutine(intake, elevator), // Pick up a coral
-        ElevatorCommands.pickUpCoralFromIntake(elevator) // And handoff to the elevator.
+        ElevatorCommands.pickUpCoralFromIntake(elevator, intake) // And handoff to the elevator.
         );
   }
 }

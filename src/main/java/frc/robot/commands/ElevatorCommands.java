@@ -3,9 +3,9 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
+import frc.robot.subsystems.intake.Intake;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
@@ -39,27 +39,37 @@ public class ElevatorCommands {
         elevator);
   }
 
-  public static InstantCommand goToTier(int tier, Elevator elevator) {
-    return new InstantCommand(
-        () ->
-            elevator.setRHeight(
-                ElevatorConstants.kElevatorHeights[
-                    tier]) // Set the height to the height based on a list of tier heights.
+  public static Command goToTier(int tier, Elevator elevator) {
+    return Commands.runOnce(
+        () -> {
+          elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
+        } // Set the height to the height based on a list of tier heights.
         ,
         elevator);
   }
 
-  public static InstantCommand placeOnTier(int tier, Elevator elevator) {
-    // Assuming alignment to reef.
-    return new InstantCommand(
-        () -> {
-          elevator.setRAngle(ElevatorConstants.scoringAngle);
-          elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
-        },
-        elevator);
+  public static Command goToTier(int tier, Elevator elevator, Intake intake) {
+    return Commands.parallel(
+        Commands.runOnce(
+            () -> {
+              elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
+            } // Set the height to the height based on a list of tier heights.
+            ,
+            elevator),
+        Commands.runOnce(intake::rotateOutIntake, intake).onlyWhile(() -> !intake.getIntakeOpen()));
   }
 
-  public static Command pickUpCoralFromIntake(Elevator elevator) {
+  public static Command place(Elevator elevator) {
+    // Assuming alignment to reef.
+    return Commands.runOnce(() -> elevator.setRAngle(ElevatorConstants.scoringAngle), elevator);
+  }
+
+  public static Command placeOnTier(int tier, Elevator elevator, Intake intake) {
+    // Assuming alignment to reef.
+    return Commands.sequence(goToTier(tier, elevator, intake), place(elevator));
+  }
+
+  public static Command pickUpCoralFromIntake(Elevator elevator, Intake intake) {
     return Commands.sequence(
         Commands.runOnce(
             () -> {
@@ -72,10 +82,12 @@ public class ElevatorCommands {
         Commands.waitUntil(
             () ->
                 MathUtil.isNear(
-                    0.75, elevator.getShoulderAngle(), 0.003)), // Wait until the arm is down,
+                    0.75, elevator.getShoulderAngle(), 0.005)), // Wait until the arm is down,
         goToTier(0, elevator), // Then move down to the coral to intake it.
-        Commands.runOnce(()-> elevator.setRHeight(ElevatorConstants.kElevatorHeights[0] + 7),elevator),
-        Commands.waitUntil(()->elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 2),
-        Commands.runOnce(() ->elevator.setRAngle(0.25)));
+        Commands.waitUntil(()-> MathUtil.isNear(ElevatorConstants.kElevatorHeights[0], elevator.getHeight(), 0.05)),
+        Commands.runOnce(
+            () -> elevator.setRHeight(ElevatorConstants.kElevatorHeights[0] + 7), elevator),
+        Commands.waitUntil(() -> elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 2),
+        Commands.runOnce(() -> elevator.setRAngle(0.25)));
   }
 }
