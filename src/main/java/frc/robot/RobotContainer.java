@@ -32,7 +32,6 @@ import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.IntakeCommands;
-import frc.robot.commands.autos.ExitStartingAreaAuto;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -88,7 +87,6 @@ public class RobotContainer {
             new Vision(
                 drive,
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(camera0Name, robotToCamera0),
                 new VisionIOPhotonVision(camera1Name, robotToCamera1),
                 new VisionIOTargetOnly(camera2Name));
         break;
@@ -107,8 +105,8 @@ public class RobotContainer {
             new Vision(
                 drive,
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(camera2Name, robotToCamera2, drive::getPose));
         break;
 
       case TEST: // Make a "blank" drive and "blank" vision, as these subsystems are most expensive
@@ -195,11 +193,7 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Run intake routine when Y button is pressed
-    controller
-        .y()
-        .whileTrue(
-            new AlignToCoral(
-                drive, vision, 2, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
+    controller.y().whileTrue(new AlignToCoral(drive, vision, 2, ()->-controller.getLeftY(), ()->-controller.getLeftX()));
     // Intake and handoff on bumper press.
     fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
     fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
@@ -207,12 +201,16 @@ public class RobotContainer {
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
 
+    // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
+    // Score on right bumper
     controller
         .leftBumper()
         .onTrue(
             IntakeCommands.runIntakeRoutine(() -> controller.a().getAsBoolean(), intake, elevator));
-    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake));
-    controller.rightBumper().onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake));
+    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
+    controller
+        .rightBumper()
+        .onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); // Score L2.
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
@@ -229,6 +227,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+                
   }
 
   /**
