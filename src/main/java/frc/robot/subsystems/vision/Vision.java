@@ -17,11 +17,13 @@ import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -34,6 +36,7 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.TargetCorner;
 
 public class Vision extends SubsystemBase {
   // private final Drive drive;
@@ -43,8 +46,17 @@ public class Vision extends SubsystemBase {
   private final Alert[] disconnectedAlerts;
   private final Drive drive;
 
+  public boolean alignToReef = false;
   public boolean alignToBranch = false;
   public boolean driveReady = false;
+
+  private static final double ANGLE_KP = 100.0;
+  private static final double ANGLE_KD = 0.4;
+  private static final double ANGLE_KI = 0.8;
+  private static final double ANGLE_MAX_VELOCITY = 8.0; // rad/s
+  private static final double ANGLE_MAX_ACCELERATION = 20.0; // rad/s^2
+
+  private static final ProfiledPIDController angleController = new ProfiledPIDController(ANGLE_KP, ANGLE_KI, ANGLE_KD, new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
 
   public Vision(Drive drive, VisionConsumer consumer, VisionIO... io) {
     this.drive = drive;
@@ -196,6 +208,57 @@ public class Vision extends SubsystemBase {
 
     // System.out.println(alignToBranch);
 
+    if (alignToReef == true) {
+      var result = VisionConstants.camera1.getLatestResult();
+    
+      if (result.hasTargets() == true) {
+
+        PhotonTrackedTarget target = result.getBestTarget();
+
+        if (target.getFiducialId() == 1) { 
+          var x = target.getDetectedCorners();
+          TargetCorner corner0 = x.get(0);
+          TargetCorner corner1 = x.get(1);
+          TargetCorner corner2 = x.get(2);
+          TargetCorner corner3 = x.get(3);
+
+        double targetErrorYaw = Units.degreesToRadians(target.getYaw());
+        double omega = angleController.calculate(targetErrorYaw, 0.0);
+
+          double c0 = corner0.y;
+          double c1 = corner1.y;
+          double c2 = corner2.y;
+          double c3 = corner3.y;
+
+          System.out.println("CORNER 1: " + c0);
+          System.out.println("CORNER 2: " + c0);
+          System.out.println("CORNER 3: " + c0);
+          System.out.println("CORNER 4: " + c0);
+
+          if (Math.abs(c0 - c1) > 2 && Math.abs(c2 - c3) > 2) {
+            if (target.getYaw() > 0) {
+            drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(1, 0.0, omega), drive.getRotation()));
+            } else if (target.getYaw() < 0) {
+              drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(-1, 0.0, omega), drive.getRotation()));
+            }
+          } else {
+            drive.runVelocity(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+            alignToReef = false;
+          }
+          
+            
+          }
+        }
+      
+      }
+
+
     if (alignToBranch == true) {
       var result = VisionConstants.camera1.getLatestResult();
       // System.out.println("check 1");
@@ -229,25 +292,32 @@ public class Vision extends SubsystemBase {
           if (driveReady == true) {
             drive.runVelocity(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
-                    new ChassisSpeeds(1, 0.0, 0), drive.getRotation()));
+                    new ChassisSpeeds(0, 1, 0), drive.getRotation()));
             System.out.println("COMMAND OVER");
           } else {
             drive.runVelocity(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                     new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+            alignToBranch = false;
           }
         }
       } else {
-        alignToBranch = false;
         drive.runVelocity(
             ChassisSpeeds.fromFieldRelativeSpeeds(
                 new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+        alignToBranch = false;
       }
     }
+
+
   }
 
   public void setAlign(boolean j) {
     alignToBranch = j;
+  }
+
+  public void setAlignToReef(boolean j) {
+    alignToReef = j;
   }
 
   public boolean getDriveStatus() {
