@@ -1,7 +1,9 @@
 package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -12,6 +14,9 @@ public class Elevator extends SubsystemBase {
   public static double elevatorRAngle = 0.3;
   public static double minHeight = 0;
   BooleanSupplier intakeStateSupplier;
+  private static final DigitalInput elevatorlimitSwtich =
+      new DigitalInput(ElevatorConstants.klimitSwitchPort);
+  private static final Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);
 
   // Inputs from the elevator hardware.
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
@@ -41,6 +46,7 @@ public class Elevator extends SubsystemBase {
     Logger.recordOutput("Elevator/MinHeight", minHeight);
     Logger.recordOutput("Elevator/AbsoluteAngle", inputs.internalAngle);
     Logger.recordOutput("Elevator/InternalAngle", inputs.shoulderAngle);
+    Logger.recordOutput("Elevator/LimitSwtich", elevatorlimitSwtich.get());
   }
 
   public void adjustRHeight(double height) {
@@ -85,6 +91,10 @@ public class Elevator extends SubsystemBase {
 
   public double getHeight() {
     return inputs.height;
+  }
+
+  public Trigger limitSwtich() {
+    return limitSwitchTrigger;
   }
 
   private void calcMinHeight() {

@@ -20,15 +20,13 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
@@ -41,7 +39,6 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIOSpark;
@@ -144,7 +141,7 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-    /* 
+    /*
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -162,11 +159,7 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     */
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
-    
 
-    DigitalInput elevatorlimitSwtich = new DigitalInput(ElevatorConstants.klimitSwitchPort);
-    Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);
-    limitSwitchTrigger.onFalse(Commands.runOnce(elevator::resetEncoder, elevator));
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -208,6 +201,9 @@ public class RobotContainer {
     fightBox.button(6).onTrue(ElevatorCommands.goToTier(3, elevator, intake));
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
+    fightBox.pov(90).onTrue(new InstantCommand(() -> elevator.setRAngle(0.75), elevator));
+
+    elevator.limitSwtich().onFalse(new InstantCommand(elevator::resetEncoder, elevator));
 
     // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
