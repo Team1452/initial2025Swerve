@@ -3,6 +3,7 @@ package frc.robot.commands.autos;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 
 public class ExitStartingAreaAuto extends SequentialCommandGroup {
@@ -23,9 +24,7 @@ public class ExitStartingAreaAuto extends SequentialCommandGroup {
     // This provides a continuously updated target for the built-in PID in joystickDriveAtAngle.
 
     addCommands(
-      Commands.repeatingSequence(
-        Commands.run(() -> drive.runVelocity(new ChassisSpeeds(-1, 0.0, 0.0)))
-      )
+      DriveCommands.joystickDrive(drive, () -> -5, () -> 0, () -> 0)
     );
   }
 }
