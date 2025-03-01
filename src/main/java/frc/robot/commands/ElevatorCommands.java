@@ -56,7 +56,9 @@ public class ElevatorCommands {
             } // Set the height to the height based on a list of tier heights.
             ,
             elevator),
-        Commands.runOnce(intake::rotateOutIntake, intake).onlyWhile(() -> !intake.getIntakeOpen()));
+        Commands.runOnce(intake::rotateOutIntake, intake).onlyWhile(() -> !intake.getIntakeOpen())).onlyIf(
+        ()->ElevatorConstants.kElevatorHeights[tier] <= ElevatorConstants.intakeHeight
+        );
   }
 
   public static Command place(Elevator elevator) {
