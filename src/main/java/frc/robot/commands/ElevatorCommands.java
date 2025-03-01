@@ -36,15 +36,16 @@ public class ElevatorCommands {
 
   public static Command goToTier(int tier, Elevator elevator, Intake intake) {
     return Commands.parallel(
-            Commands.runOnce(
-                () -> {
-                  elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
-                } // Set the height to the height based on a list of tier heights.
-                ,
-                elevator),
-            Commands.runOnce(intake::rotateOutIntake, intake)
-                .onlyWhile(() -> !intake.getIntakeOpen()))
-        .onlyIf(() -> ElevatorConstants.kElevatorHeights[tier] <= ElevatorConstants.intakeHeight);
+        Commands.runOnce(
+            () -> {
+              elevator.setRHeight(ElevatorConstants.kElevatorHeights[tier]);
+            } // Set the height to the height based on a list of tier heights.
+            ,
+            elevator),
+        Commands.runOnce(intake::rotateOutIntake, intake)
+            .onlyIf(
+                () -> ElevatorConstants.kElevatorHeights[tier] <= ElevatorConstants.intakeHeight)
+            .onlyWhile(() -> !intake.getIntakeOpen()));
   }
 
   public static Command place(Elevator elevator) {
@@ -71,6 +72,9 @@ public class ElevatorCommands {
             () ->
                 MathUtil.isNear(
                     0.75, elevator.getShoulderAngle(), 0.005)), // Wait until the arm is down,
+        Commands.runOnce(() -> intake.spinSucker(-0.1), intake), // Spit out.
+        Commands.waitSeconds(0.02),
+        Commands.runOnce(intake::stopSucker, intake), // Stop the sucker.
         goToTier(0, elevator), // Then move down to the coral to intake it.
         Commands.waitUntil(
             () ->

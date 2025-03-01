@@ -83,9 +83,9 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_ShoulderController = m_shoulder.getClosedLoopController();
     SparkUtil.tryUntilOk(
         m_shoulder,
-        5,
+        20,
         () -> m_shoulder.getEncoder().setPosition(m_shoulder.getAbsoluteEncoder().getPosition()));
-    SparkUtil.tryUntilOk(m_one, 5, () -> m_one.getEncoder().setPosition(0));
+    SparkUtil.tryUntilOk(m_one, 20, () -> m_one.getEncoder().setPosition(0));
   }
 
   @Override

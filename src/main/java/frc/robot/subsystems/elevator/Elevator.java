@@ -9,7 +9,7 @@ public class Elevator extends SubsystemBase {
   // Hardware interface for the elevator.
   private final ElevatorIO io;
   public static double elevatorRHeight = 0;
-  public static double elevatorRAngle = 0.25;
+  public static double elevatorRAngle = 0.3;
   public static double minHeight = 0;
   BooleanSupplier intakeStateSupplier;
 

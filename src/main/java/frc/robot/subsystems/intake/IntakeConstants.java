@@ -18,5 +18,5 @@ public final class IntakeConstants {
     0 // F
   };
   public static final double intakeRotateOutSpeed = 0.4;
-  public static final double intakeRotateInSpeed = -0.5;
+  public static final double intakeRotateInSpeed = -0.4;
 }

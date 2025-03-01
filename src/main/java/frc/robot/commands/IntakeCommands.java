@@ -34,16 +34,13 @@ public class IntakeCommands {
                   }
                   intake.rotateInIntake(); // Once we have a coral, start going back in.
                   intake.spinSucker(
-                      0.03); // Spin the sucker slightly to keep the coral during rotation in.
+                      0.1); // Spin the sucker slightly to keep the coral during rotation in.
                 },
                 intake),
             Commands.waitUntil(
                 intake::getRotatorStopBack), // Wait until it's in the handoff position
-            Commands.runOnce(() -> intake.spinSucker(-0.1), intake), // Spit out.
-            Commands.waitSeconds(0.02),
             Commands.runOnce(intake::stopIntake, intake),
-            Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
-            )
+            Commands.runOnce(intake::stopSucker, intake))
         .handleInterrupt(intake::rotateInDead)
         .onlyWhile(() -> !interrupt.getAsBoolean());
   }
