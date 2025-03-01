@@ -202,13 +202,12 @@ public class RobotContainer {
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
 
-    // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
-    // Score on right bumper
-    controller.leftBumper().onTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
-    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
+
+    controller.leftBumper().whileTrue(IntakeCommands.runIntakeRoutine(intake, elevator));
+    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); 
     controller
         .rightBumper()
-        .onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); // Score L2.
+        .whileTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); 
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));

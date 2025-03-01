@@ -40,6 +40,10 @@ public class IntakeCommands {
         Commands.waitSeconds(0.02),
         Commands.runOnce(intake::stopIntake, intake),
         Commands.runOnce(intake::stopSucker, intake) // Stop the sucker.
+        ).handleInterrupt( ()-> {
+          intake.stopIntake();
+          intake.stopSucker();
+        }
         );
   }
 
