@@ -12,7 +12,6 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DutyCycle;
 import frc.robot.util.SparkUtil;
 
 public class ElevatorIOSpark implements ElevatorIO {
@@ -43,7 +42,7 @@ public class ElevatorIOSpark implements ElevatorIO {
         .maxOutput(0.45) // Limit speed
         .minOutput(-0.45) // Limit speed
         .positionWrappingEnabled(false)
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
         .pidf(
             ElevatorConstants.kElevatorGains[0],
             ElevatorConstants.kElevatorGains[1],
