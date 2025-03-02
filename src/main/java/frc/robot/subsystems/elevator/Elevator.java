@@ -1,9 +1,7 @@
 package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -14,9 +12,6 @@ public class Elevator extends SubsystemBase {
   public static double elevatorRAngle = 0.3;
   public static double minHeight = 0;
   BooleanSupplier intakeStateSupplier;
-  private static final DigitalInput elevatorlimitSwtich =
-      new DigitalInput(ElevatorConstants.klimitSwitchPort);
-  private static final Trigger limitSwitchTrigger = new Trigger(elevatorlimitSwtich::get);
 
   // Inputs from the elevator hardware.
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
@@ -46,7 +41,7 @@ public class Elevator extends SubsystemBase {
     Logger.recordOutput("Elevator/MinHeight", minHeight);
     Logger.recordOutput("Elevator/AbsoluteAngle", inputs.internalAngle);
     Logger.recordOutput("Elevator/InternalAngle", inputs.shoulderAngle);
-    Logger.recordOutput("Elevator/LimitSwtich", elevatorlimitSwtich.get());
+    Logger.recordOutput("Elevator/LimitSwtich", inputs.elevatorlimitSwtich);
   }
 
   public void adjustRHeight(double height) {
@@ -93,8 +88,8 @@ public class Elevator extends SubsystemBase {
     return inputs.height;
   }
 
-  public Trigger limitSwtich() {
-    return limitSwitchTrigger;
+  public BooleanSupplier eLimitSwitch() {
+    return (() -> inputs.elevatorlimitSwtich);
   }
 
   private void calcMinHeight() {
@@ -112,7 +107,7 @@ public class Elevator extends SubsystemBase {
               Math.abs( // Then return the abs value of the length of the shoulder times the sin of
                   // the shoulder angle. Who doesn't love trig?
                   ElevatorConstants.shoulderLength * Math.sin((inputs.shoulderAngle * 2 * Math.PI)))
-              : 0; // Otherwise, return 0, as that is the minimum height set by the limit switch.
+              : -5; // Otherwise, return 5, to adjust for drift.
     }
   }
 }

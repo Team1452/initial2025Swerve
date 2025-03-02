@@ -11,7 +11,6 @@ public class IntakeCommands {
   private IntakeCommands() {}
 
   static boolean hasCoral;
-  ;
 
   public static Command rotateOut(Intake intake) {
     return Commands.sequence(
@@ -28,7 +27,7 @@ public class IntakeCommands {
         Commands.runOnce(intake::rotateOutIntake, intake),
         Commands.waitUntil(intake::getRotatorStopForward),
         Commands.runOnce(intake::stopIntake, intake),
-        Commands.waitUntil(intake::getSuckerStop).withDeadline(Commands.waitUntil(interrupt)),
+        Commands.waitUntil(interrupt).withDeadline(Commands.waitUntil(intake::getSuckerStop)),
         Commands.runOnce(intake::stopSucker, intake),
         Commands.runOnce(
             () -> {

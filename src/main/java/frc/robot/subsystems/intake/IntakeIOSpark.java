@@ -23,7 +23,7 @@ public class IntakeIOSpark implements IntakeIO {
     suckerConfig = new SparkMaxConfig();
 
     rotatorConfig.inverted(IntakeConstants.reversedRotator).idleMode(IdleMode.kBrake);
-    suckerConfig.inverted(IntakeConstants.reversedSucker).idleMode(IdleMode.kBrake);
+    suckerConfig.inverted(IntakeConstants.reversedSucker).idleMode(IdleMode.kCoast);
     SparkUtil.tryUntilOk(
         m_rotator,
         5,

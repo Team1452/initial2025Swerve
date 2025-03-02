@@ -8,6 +8,7 @@ public interface ElevatorIO {
     public double height = 0;
     public double internalAngle = 0;
     public double shoulderAngle = 0;
+    public boolean elevatorlimitSwtich = false;
   }
 
   public default void setHeight(double setpoint) {}
