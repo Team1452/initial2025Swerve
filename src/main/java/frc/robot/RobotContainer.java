@@ -162,10 +162,11 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     */
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
+    autoChooser.addOption("Middle Auto", new PathPlannerAuto("MiddleAuto"));
 
     NamedCommands.registerCommand("PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
     eLimitSwitchTrigger = new Trigger(elevator.eLimitSwitch());
-    
+
     eLimitSwitchTrigger.onTrue(new InstantCommand(elevator::resetEncoder));
     // Configure the button bindings
     configureButtonBindings();
