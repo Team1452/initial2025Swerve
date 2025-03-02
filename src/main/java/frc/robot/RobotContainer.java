@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
@@ -61,6 +62,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Intake intake;
   private final Elevator elevator;
+  private Trigger eLimitSwitchTrigger;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -159,7 +161,8 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     */
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
-
+    eLimitSwitchTrigger = new Trigger(elevator.eLimitSwitch());
+    eLimitSwitchTrigger.onTrue(new InstantCommand(elevator::resetEncoder));
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -201,11 +204,16 @@ public class RobotContainer {
     fightBox.button(6).onTrue(ElevatorCommands.goToTier(3, elevator, intake));
     fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
     fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
-    fightBox.pov(90).onTrue(new InstantCommand(() -> elevator.setRAngle(0.75), elevator));
+    fightBox
+        .pov(90)
+        .onTrue(
+            new InstantCommand(
+                () -> {
+                  elevator.setRAngle(0.75);
+                },
+                elevator));
 
-    elevator.limitSwtich().onFalse(new InstantCommand(elevator::resetEncoder, elevator));
-
-    // controller.leftBumper().onTruei9 (IntakeCommands.runIntakeRoutine(intake));
+    // controller.leftBumper().onTrue (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
     controller
         .leftBumper()

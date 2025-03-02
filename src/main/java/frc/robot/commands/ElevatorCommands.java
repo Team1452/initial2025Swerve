@@ -65,7 +65,7 @@ public class ElevatorCommands {
               elevator.setRAngle(0.75); // Move the arm down.
               elevator.setRHeight(
                   ElevatorConstants.kElevatorHeights[0]
-                      + 7); // Move the elevator to above the handoff height.
+                      + 10); // Move the elevator to above the handoff height.
             },
             elevator),
         Commands.waitUntil(
@@ -76,12 +76,10 @@ public class ElevatorCommands {
         Commands.waitSeconds(0.02),
         Commands.runOnce(intake::stopSucker, intake), // Stop the sucker.
         goToTier(0, elevator), // Then move down to the coral to intake it.
-        Commands.waitUntil(
-            () ->
-                MathUtil.isNear(ElevatorConstants.kElevatorHeights[0], elevator.getHeight(), 0.05)),
+        Commands.waitSeconds(0.5),
         Commands.runOnce(
             () -> elevator.setRHeight(ElevatorConstants.kElevatorHeights[0] + 7), elevator),
-        Commands.waitUntil(() -> elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 2),
+        Commands.waitUntil(() -> elevator.getHeight() > ElevatorConstants.kElevatorHeights[0] + 4),
         Commands.runOnce(() -> elevator.setRAngle(0.25)));
   }
 }
