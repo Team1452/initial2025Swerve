@@ -17,6 +17,7 @@ package frc.robot;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -159,6 +160,8 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     */
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
+
+    NamedCommands.registerCommand("PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
 
     // Configure the button bindings
     configureButtonBindings();
