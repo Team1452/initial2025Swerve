@@ -7,7 +7,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Middle"
+            "pathName": "RightAuto"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AlignToReefTag"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "MoveToReef"
           }
         },
         {

@@ -30,9 +30,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AlignToCoral;
+import frc.robot.commands.AlignToReef;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.IntakeCommands;
+import frc.robot.commands.MoveToReef;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -164,9 +166,16 @@ public class RobotContainer {
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
     autoChooser.addOption("Middle Auto", new PathPlannerAuto("MiddleAuto"));
 
-    NamedCommands.registerCommand("PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
+    NamedCommands.registerCommand(
+        "PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
+    
+    NamedCommands.registerCommand(
+        "AlignToReefTag", new AlignToReef(drive, vision));
+    
+    NamedCommands.registerCommand(
+        "MoveToReef", new MoveToReef(drive, vision));
+    
     eLimitSwitchTrigger = new Trigger(elevator.eLimitSwitch());
-
     eLimitSwitchTrigger.onTrue(new InstantCommand(elevator::resetEncoder));
     // Configure the button bindings
     configureButtonBindings();
