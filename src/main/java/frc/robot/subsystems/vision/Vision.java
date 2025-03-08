@@ -47,7 +47,7 @@ public class Vision extends SubsystemBase {
   private final Drive drive;
 
   public boolean alignToReef = false;
-  public boolean alignToBranch = false;
+  public boolean moveReadyness = false;
   public boolean driveReady = false;
 
   private static final double ANGLE_KP = 100.0;
@@ -220,7 +220,7 @@ public class Vision extends SubsystemBase {
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 1) {
+        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
           var x = target.getDetectedCorners();
           TargetCorner corner0 = x.get(0);
           TargetCorner corner1 = x.get(1);
@@ -260,7 +260,7 @@ public class Vision extends SubsystemBase {
       }
     }
 
-    if (alignToBranch == true) {
+    if (moveReadyness == true) {
       var result = VisionConstants.camera1.getLatestResult();
       // System.out.println("check 1");
       if (result.hasTargets() == true) {
@@ -268,7 +268,7 @@ public class Vision extends SubsystemBase {
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 1) {
+        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
 
           // System.out.println("check 3");
 
@@ -299,20 +299,20 @@ public class Vision extends SubsystemBase {
             drive.runVelocity(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                     new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
-            alignToBranch = false;
+            moveReadyness = false;
           }
         }
       } else {
         drive.runVelocity(
             ChassisSpeeds.fromFieldRelativeSpeeds(
                 new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
-        alignToBranch = false;
+        moveReadyness = false;
       }
     }
   }
 
-  public void setAlign(boolean j) {
-    alignToBranch = j;
+  public void moveReady(boolean j) {
+    moveReadyness = j;
   }
 
   public void setAlignToReef(boolean j) {
@@ -321,10 +321,6 @@ public class Vision extends SubsystemBase {
 
   public boolean getDriveStatus() {
     return driveReady;
-  }
-
-  public boolean getAlignToBranch() {
-    return alignToBranch;
   }
 
   @FunctionalInterface

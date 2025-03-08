@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.Vision;
 
-public class MoveToReefRed extends Command {
+public class AlignToReef extends Command {
   private final Drive drive;
   private final Vision vision;
   private final ProfiledPIDController angleController;
@@ -25,7 +25,7 @@ public class MoveToReefRed extends Command {
 
   private double targetError;
 
-  public MoveToReefRed(Drive drive, Vision vision) {
+  public AlignToReef(Drive drive, Vision vision) {
     this.drive = drive;
     this.vision = vision;
 
@@ -50,7 +50,7 @@ public class MoveToReefRed extends Command {
   }
 
   public void execute() {
-    vision.setAlign(true);
+    vision.setAlignToReef(true);
   }
 
   @Override
