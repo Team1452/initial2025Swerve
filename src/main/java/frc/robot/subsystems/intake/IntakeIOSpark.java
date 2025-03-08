@@ -26,6 +26,7 @@ public class IntakeIOSpark implements IntakeIO {
     rotatorConfig = new SparkMaxConfig();
     suckerConfig = new SparkMaxConfig();
     rotatorConfig
+    .smartCurrentLimit(1)
         .inverted(IntakeConstants.reversedRotator)
         .idleMode(IdleMode.kBrake)
         .closedLoop

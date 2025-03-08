@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 public class Intake extends SubsystemBase {
   // The hardware interface for the intake subsystem.
   private final IntakeIO io;
+  private boolean slopState = false;
   private double intakeRAngle = IntakeConstants.intakeStartUpAngle;
 
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
@@ -19,7 +20,9 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
-    io.setRotatorAngle(intakeRAngle);
+    if (!slopState) {
+      io.setRotatorAngle(intakeRAngle);
+    }
     Logger.processInputs("Intake", inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
     Logger.recordOutput("Intake/IntakeOpen", inputs.intakeOpen);
@@ -36,6 +39,10 @@ public class Intake extends SubsystemBase {
 
   public void spinSucker(double speed) {
     io.setSuckerVelocity(speed);
+  }
+
+  public void setSlopState(boolean state) {
+    slopState = state;
   }
 
   public void suckSucker() {

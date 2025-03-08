@@ -86,7 +86,7 @@ public class Elevator extends SubsystemBase {
 
   private void calcMinHeight() {
     minHeight =
-        intakeStateSupplier.getAsBoolean() // If the intake is open,
+        !intakeStateSupplier.getAsBoolean() // If the intake is closed,
             ? (inputs.shoulderAngle < 0.5 // and the shoulder is up
                 ? ElevatorConstants.intakeHeight // Then the min height is the intake height.
                 : ElevatorConstants.intakeHeight
@@ -98,7 +98,7 @@ public class Elevator extends SubsystemBase {
                                     - inputs
                                         .shoulderAngle))) // If it's down, it's the intake height +
             // a sin compliment
-            : (inputs.shoulderAngle > 0.5 // If the intake is closed
+            : (inputs.shoulderAngle > 0.5 // If the intake is open
                 ? ElevatorConstants.shoulderLength
                     * Math.sin(
                         2
