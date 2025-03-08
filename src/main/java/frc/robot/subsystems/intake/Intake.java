@@ -25,7 +25,7 @@ public class Intake extends SubsystemBase {
     }
     Logger.processInputs("Intake", inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
-    Logger.recordOutput("Intake/IntakeOpen", inputs.intakeOpen);
+    Logger.recordOutput("Intake/IntakeOpen", getIntakeOpen());
     Logger.recordOutput("Intake/rotatorCurrent", inputs.rotatorCurrent);
     Logger.recordOutput("Intake/suckerSpeed", inputs.suckerSpeed);
     Logger.recordOutput("Intake/RequestedAngle", intakeRAngle);
@@ -65,6 +65,10 @@ public class Intake extends SubsystemBase {
     intakeRAngle = angle;
   }
 
+  public void adjustRotatorAngle(double angle) {
+    intakeRAngle += angle;
+  }
+
   public boolean getRotatorStopForward() {
     return inputs.rotatorSpeed < 10 && inputs.intakeAngle > IntakeConstants.intakeLevelOneAngle - 1;
   }
@@ -100,6 +104,6 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean getIntakeOpen() {
-    return inputs.intakeOpen;
+    return intakeRAngle >= IntakeConstants.intakeStartUpAngle;
   }
 }

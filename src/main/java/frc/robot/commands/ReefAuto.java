@@ -61,7 +61,8 @@ public class ReefAuto extends SequentialCommandGroup {
         // Pre-align: Rotate until the yaw error is less than 2°.
         new AlignToReef(drive, vision).until(() -> !vision.getAlignToReef()),
         // Approach: Drive forward to set distance away from AprilTag
-        new MoveToReef(drive, vision).until(() -> !vision.getMoveReady()), // TODO: add move offset to align branch
+        new MoveToReef(drive, vision)
+            .until(() -> !vision.getMoveReady()), // TODO: add move offset to align branch
         // Spit Coral
         IntakeCommandClosedLoop.spitOut(intake).withTimeout(0.5) // Spit out coral
         );

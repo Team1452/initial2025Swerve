@@ -26,7 +26,7 @@ public class IntakeIOSpark implements IntakeIO {
     rotatorConfig = new SparkMaxConfig();
     suckerConfig = new SparkMaxConfig();
     rotatorConfig
-    .smartCurrentLimit(1)
+        .smartCurrentLimit(1)
         .inverted(IntakeConstants.reversedRotator)
         .idleMode(IdleMode.kBrake)
         .closedLoop
@@ -86,7 +86,5 @@ public class IntakeIOSpark implements IntakeIO {
     inputs.intakeAngle = m_rotator.getEncoder().getPosition(); // Position in rotations
     inputs.rotatorSpeed = m_rotator.getEncoder().getVelocity();
     inputs.suckerSpeed = m_sucker.getEncoder().getVelocity();
-    inputs.intakeOpen =
-        inputs.intakeAngle > IntakeConstants.intakeHandOffAngle; // If the intake is open
   }
 }

@@ -29,8 +29,8 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs); // Refresh the inputs.
     calcMinHeight(); // Guess.
-    io.setHeight(elevatorRHeight); // Set the height of the elevator to the modifiedRHeight.
-    io.setShoulderAngle(elevatorRAngle); // Set the angle of elevator every cycle. This
+    setRHeight(elevatorRHeight); // Set the height of the elevator to the modifiedRHeight.
+    setRAngle(elevatorRAngle); // Set the angle of elevator every cycle. This
     // prevents the elevator from
     // moving when no signal is sent.
 

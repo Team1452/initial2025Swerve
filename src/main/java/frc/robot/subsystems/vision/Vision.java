@@ -357,7 +357,6 @@ public class Vision extends SubsystemBase {
     return alignToReef;
   }
 
-
   public boolean getDriveStatus() {
     return driveReady;
   }
