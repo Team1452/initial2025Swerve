@@ -83,7 +83,14 @@ public class Elevator extends SubsystemBase {
   public BooleanSupplier eLimitSwitch() {
     return (() -> inputs.elevatorlimitSwtich);
   }
-  private double calcMinHeight() {
-    return intakeStateSupplier.getAsBoolean()  ? ElevatorConstants.intakeHeight : 0;
-  }
+  private void calcMinHeight() {
+    minHeight = intakeStateSupplier.getAsBoolean() //If the intake is open,
+        ? (inputs.shoulderAngle < 0.5 // and the shoulder is up
+            ? ElevatorConstants.intakeHeight //Then the min height is the intake height.
+            : ElevatorConstants.intakeHeight + ElevatorConstants.shoulderLength * Math.sin(2 * Math.PI * (1 - inputs.shoulderAngle))) //If it's down, it's the intake height + a sin compliment
+        : (inputs.shoulderAngle > 0.5 //If the intake is closed
+            ? ElevatorConstants.shoulderLength * Math.sin(2 * Math.PI * (1 - inputs.shoulderAngle)) //And the shoulder is down, then the min height is the calculated sin compliement
+            : -2); //If it's up, then the min height is -2 (so we have some play)
+}
+
 }
