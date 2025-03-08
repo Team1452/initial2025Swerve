@@ -93,7 +93,7 @@ public class Elevator extends SubsystemBase {
                     + ElevatorConstants.shoulderLength
                         * Math.sin(
                             2
-                                * Math.PIx
+                                * Math.PI
                                 * (1
                                     - inputs
                                         .shoulderAngle))) // If it's down, it's the intake height +

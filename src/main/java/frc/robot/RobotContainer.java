@@ -34,7 +34,6 @@ import frc.robot.commands.AlignToReef;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
 import frc.robot.commands.IntakeCommandClosedLoop;
-import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveToReef;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
@@ -170,13 +169,11 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
-    
-    NamedCommands.registerCommand(
-        "AlignToReefTag", new AlignToReef(drive, vision));
-    
-    NamedCommands.registerCommand(
-        "MoveToReef", new MoveToReef(drive, vision));
-    
+
+    NamedCommands.registerCommand("AlignToReefTag", new AlignToReef(drive, vision));
+
+    NamedCommands.registerCommand("MoveToReef", new MoveToReef(drive, vision));
+
     eLimitSwitchTrigger = new Trigger(elevator.eLimitSwitch());
     eLimitSwitchTrigger.onTrue(new InstantCommand(elevator::resetEncoder));
     // Configure the button bindings
@@ -231,8 +228,12 @@ public class RobotContainer {
 
     // controller.leftBumper().onTrue (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller.leftBumper().onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeLevelOneAngle));
-    controller.rightBumper().onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeIntakeAngle));
+    controller
+        .leftBumper()
+        .onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeLevelOneAngle));
+    controller
+        .rightBumper()
+        .onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeIntakeAngle));
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));

@@ -28,8 +28,9 @@ public class IntakeCommandClosedLoop {
 
   public static Command intakeCoral(Intake intake) {
     return Commands.sequence(
-      rotateTo(intake, IntakeConstants.intakeIntakeAngle),
-      Commands.run(intake::suckSucker, intake).handleInterrupt(intake::stopSucker).until(intake::getSuckerStop)
-    );
+        rotateTo(intake, IntakeConstants.intakeIntakeAngle),
+        Commands.run(intake::suckSucker, intake)
+            .handleInterrupt(intake::stopSucker)
+            .until(intake::getSuckerStop));
   }
 }

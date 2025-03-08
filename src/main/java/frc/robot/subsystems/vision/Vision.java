@@ -220,7 +220,18 @@ public class Vision extends SubsystemBase {
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
+        if (target.getFiducialId() == 9
+            || target.getFiducialId() == 10
+            || target.getFiducialId() == 11
+            || target.getFiducialId() == 6
+            || target.getFiducialId() == 7
+            || target.getFiducialId() == 8
+            || target.getFiducialId() == 17
+            || target.getFiducialId() == 18
+            || target.getFiducialId() == 19
+            || target.getFiducialId() == 20
+            || target.getFiducialId() == 21
+            || target.getFiducialId() == 22) {
           var x = target.getDetectedCorners();
           TargetCorner corner0 = x.get(0);
           TargetCorner corner1 = x.get(1);
@@ -268,7 +279,18 @@ public class Vision extends SubsystemBase {
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
+        if (target.getFiducialId() == 9
+            || target.getFiducialId() == 10
+            || target.getFiducialId() == 11
+            || target.getFiducialId() == 6
+            || target.getFiducialId() == 7
+            || target.getFiducialId() == 8
+            || target.getFiducialId() == 17
+            || target.getFiducialId() == 18
+            || target.getFiducialId() == 19
+            || target.getFiducialId() == 20
+            || target.getFiducialId() == 21
+            || target.getFiducialId() == 22) {
 
           // System.out.println("check 3");
 

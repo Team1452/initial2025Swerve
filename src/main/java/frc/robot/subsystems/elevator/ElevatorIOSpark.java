@@ -1,10 +1,10 @@
 package frc.robot.subsystems.elevator;
 
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -65,7 +65,7 @@ public class ElevatorIOSpark implements ElevatorIO {
     m_twoConfig.apply(m_oneConfig).follow(m_one, ElevatorConstants.motorsInverted);
     m_shoulderConfig.encoder.positionConversionFactor(ElevatorConstants.kShoulderConversionFactor);
     m_shoulderConfig.absoluteEncoder.zeroOffset(ElevatorConstants.kShoulderOffset).inverted(true);
-    
+
     SparkUtil.tryUntilOk(
         m_one,
         5,
@@ -85,7 +85,7 @@ public class ElevatorIOSpark implements ElevatorIO {
         () ->
             m_shoulder.configure(
                 m_shoulderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-                
+
     SparkUtil.tryUntilOk(m_one, 20, () -> m_one.getEncoder().setPosition(0));
     m_oneController = m_one.getClosedLoopController();
     m_ShoulderController = m_shoulder.getClosedLoopController();
@@ -95,7 +95,6 @@ public class ElevatorIOSpark implements ElevatorIO {
         m_shoulder,
         20,
         () -> shoulderRelativeEncoder.setPosition(shoulderAbsoluteEncoder.getPosition()));
-    
   }
 
   @Override
