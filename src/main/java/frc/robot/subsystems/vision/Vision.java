@@ -50,9 +50,9 @@ public class Vision extends SubsystemBase {
   public boolean moveReadyness = false;
   public boolean driveReady = false;
 
-  private static final double ANGLE_KP = 100.0;
-  private static final double ANGLE_KD = 0.4;
-  private static final double ANGLE_KI = 0.8;
+  private static final double ANGLE_KP = 10.0;
+  private static final double ANGLE_KD = 0.0;
+  private static final double ANGLE_KI = 0.0;
   private static final double ANGLE_MAX_VELOCITY = 8.0; // rad/s
   private static final double ANGLE_MAX_ACCELERATION = 20.0; // rad/s^2
 
@@ -213,14 +213,27 @@ public class Vision extends SubsystemBase {
 
     // System.out.println(alignToBranch);
 
+    var result = VisionConstants.camera1.getLatestResult();
+
     if (alignToReef == true) {
-      var result = VisionConstants.camera1.getLatestResult();
+      System.out.println("ALIGNING NOW BACK AWAY");
 
       if (result.hasTargets() == true) {
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
+        if (target.getFiducialId() == 9
+            || target.getFiducialId() == 10
+            || target.getFiducialId() == 11
+            || target.getFiducialId() == 6
+            || target.getFiducialId() == 7
+            || target.getFiducialId() == 8
+            || target.getFiducialId() == 17
+            || target.getFiducialId() == 18
+            || target.getFiducialId() == 19
+            || target.getFiducialId() == 20
+            || target.getFiducialId() == 21
+            || target.getFiducialId() == 22) {
           var x = target.getDetectedCorners();
           TargetCorner corner0 = x.get(0);
           TargetCorner corner1 = x.get(1);
@@ -235,40 +248,56 @@ public class Vision extends SubsystemBase {
           double c2 = corner2.y;
           double c3 = corner3.y;
 
-          System.out.println("CORNER 1: " + c0);
-          System.out.println("CORNER 2: " + c0);
-          System.out.println("CORNER 3: " + c0);
-          System.out.println("CORNER 4: " + c0);
+          System.out.println("CORNER 1: " + corner0 + "  y-value: " + c0);
+          System.out.println("CORNER 2: " + corner1 + "  y-value: " + c1);
+          System.out.println("CORNER 3: " + corner2 + "  y-value: " + c2);
+          System.out.println("CORNER 4: " + corner3 + "  y-value: " + c3);
 
           if (Math.abs(c0 - c1) > 2 && Math.abs(c2 - c3) > 2) {
-            if (target.getYaw() > 0) {
-              drive.runVelocity(
-                  ChassisSpeeds.fromFieldRelativeSpeeds(
-                      new ChassisSpeeds(1, 0.0, omega), drive.getRotation()));
-            } else if (target.getYaw() < 0) {
+            if (c1 - c0 < 0 && c2 - c3 < 0) {
               drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       new ChassisSpeeds(-1, 0.0, omega), drive.getRotation()));
+            } else if (c1 - c0 > 0 && c2 - c3 > 0) {
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      new ChassisSpeeds(1, 0.0, omega), drive.getRotation()));
             }
           } else {
+            System.out.println("PARALLE = TRUE");
             drive.runVelocity(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                     new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
             alignToReef = false;
           }
         }
+      } else {
+        alignToReef = false;
+        drive.runVelocity(
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
       }
     }
 
     if (moveReadyness == true) {
-      var result = VisionConstants.camera1.getLatestResult();
       // System.out.println("check 1");
       if (result.hasTargets() == true) {
         // System.out.println("check 2");
 
         PhotonTrackedTarget target = result.getBestTarget();
 
-        if (target.getFiducialId() == 9 || target.getFiducialId() == 10 || target.getFiducialId() == 11 || target.getFiducialId() == 6 || target.getFiducialId() == 7 || target.getFiducialId() == 8 || target.getFiducialId() == 17 || target.getFiducialId() == 18 || target.getFiducialId() == 19 || target.getFiducialId() == 20 || target.getFiducialId() == 21 || target.getFiducialId() == 22) {
+        if (target.getFiducialId() == 9
+            || target.getFiducialId() == 10
+            || target.getFiducialId() == 11
+            || target.getFiducialId() == 6
+            || target.getFiducialId() == 7
+            || target.getFiducialId() == 8
+            || target.getFiducialId() == 17
+            || target.getFiducialId() == 18
+            || target.getFiducialId() == 19
+            || target.getFiducialId() == 20
+            || target.getFiducialId() == 21
+            || target.getFiducialId() == 22) {
 
           // System.out.println("check 3");
 
@@ -306,6 +335,7 @@ public class Vision extends SubsystemBase {
         drive.runVelocity(
             ChassisSpeeds.fromFieldRelativeSpeeds(
                 new ChassisSpeeds(0, 0.0, 0), drive.getRotation()));
+
         moveReadyness = false;
       }
     }
@@ -315,9 +345,18 @@ public class Vision extends SubsystemBase {
     moveReadyness = j;
   }
 
+  public boolean getMoveReady() {
+    return moveReadyness;
+  }
+
   public void setAlignToReef(boolean j) {
     alignToReef = j;
   }
+
+  public boolean getAlignToReef() {
+    return alignToReef;
+  }
+
 
   public boolean getDriveStatus() {
     return driveReady;
