@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
@@ -25,7 +26,7 @@ public class Intake extends SubsystemBase {
     Logger.recordOutput("Intake/suckerSpeed", inputs.suckerSpeed);
   }
 
-  /** Spins the sucker roller using the aconfigured suck speed. */
+  /** Spins the sucker roller using the a configured suck speed. */
   public void spinSucker(boolean forward) {
     io.setSuckerVelocity(
         forward ? IntakeConstants.intakeSuckSpeed : -IntakeConstants.intakeSuckSpeed);
@@ -49,6 +50,10 @@ public class Intake extends SubsystemBase {
 
   public boolean getSuckerStop() {
     return inputs.suckerSpeed < 2;
+  }
+
+  public void setRotatorAngle(double angle) {
+    io.setRotatorAngle(angle);
   }
 
   public boolean getRotatorStopForward() {

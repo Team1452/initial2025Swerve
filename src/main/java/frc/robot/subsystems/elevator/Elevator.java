@@ -54,10 +54,6 @@ public class Elevator extends SubsystemBase {
 
   public void adjustRAngle(double angle) {
     elevatorRAngle += angle;
-    // intakeStateSupplier.getAsBoolean()
-    //     ? angle
-    //    : // If the intake is open, then set the angle to whatever. Otherwise:
-    //   MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
   }
 
   public void setRHeight(double height) {
@@ -70,10 +66,6 @@ public class Elevator extends SubsystemBase {
 
   public void setRAngle(double angle) {
     elevatorRAngle = angle;
-    // intakeStateSupplier.getAsBoolean()
-    //   ? angle
-    // : // If the intake is open, then set the angle to whatever. Otherwise:
-    // MathUtil.clamp(angle, 0, 0.5); // Ensure that it faces up.
   }
 
   public double getShoulderAngle() {
@@ -91,23 +83,7 @@ public class Elevator extends SubsystemBase {
   public BooleanSupplier eLimitSwitch() {
     return (() -> inputs.elevatorlimitSwtich);
   }
-
-  private void calcMinHeight() {
-    if (!intakeStateSupplier.getAsBoolean()) {
-      minHeight =
-          ElevatorConstants
-              .intakeHeight; // If the intake is closed, then the min is the lowest height possible
-      // for intake to pass through.
-      // I am assuming here that intakeHeight > 20, which is the min height when the shoulder is
-      // rotated all the way down. If it is not, then there needs to be another ternary above.
-    } else { // If it's open, then the min height depends on the angle of the shoulder.
-      minHeight =
-          ((inputs.shoulderAngle >= 0.5 && inputs.shoulderAngle <= 1))
-              ? // if the shoulder is facing down:
-              Math.abs( // Then return the abs value of the length of the shoulder times the sin of
-                  // the shoulder angle. Who doesn't love trig?
-                  ElevatorConstants.shoulderLength * Math.sin((inputs.shoulderAngle * 2 * Math.PI)))
-              : -5; // Otherwise, return 5, to adjust for drift.
-    }
+  private double calcMinHeight() {
+    return intakeStateSupplier.getAsBoolean()  ? ElevatorConstants.intakeHeight : 0;
   }
 }
