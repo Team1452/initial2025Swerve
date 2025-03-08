@@ -33,6 +33,7 @@ import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.AlignToReef;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
+import frc.robot.commands.IntakeCommandClosedLoop;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveToReef;
 import frc.robot.generated.TunerConstants;
@@ -45,6 +46,7 @@ import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.intake.IntakeIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
@@ -229,14 +231,8 @@ public class RobotContainer {
 
     // controller.leftBumper().onTrue (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller
-        .leftBumper()
-        .onTrue(
-            IntakeCommands.runIntakeRoutine(() -> controller.a().getAsBoolean(), intake, elevator));
-    // controller.rightBumper().onTrue(IntakeCommands.autoStopIntake(intake)); // Score L2.
-    controller
-        .rightBumper()
-        .onTrue(ElevatorCommands.pickUpCoralFromIntake(elevator, intake)); // Score L2.
+    controller.leftBumper().onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeLevelOneAngle));
+    controller.rightBumper().onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeIntakeAngle));
     // Reset gyro to 0° when B button is pressed
 
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));

@@ -49,7 +49,7 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean getSuckerStop() {
-    return inputs.suckerSpeed < 2;
+    return inputs.suckerSpeed < 1;
   }
 
   public void setRotatorAngle(double angle) {
@@ -57,11 +57,11 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean getRotatorStopForward() {
-    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > 8;
+    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > IntakeConstants.intakeLevelOneAngle;
   }
 
   public boolean getRotatorStopBack() {
-    return inputs.rotatorSpeed < 10 && inputs.intakeAngle < -1.5;
+    return inputs.rotatorSpeed < 10 && inputs.intakeAngle < IntakeConstants.intakeStartUpAngle;
   }
 
   public double getRotatorCurrent() {
