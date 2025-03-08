@@ -14,6 +14,7 @@ public interface IntakeIO {
   }
 
   public default void setRotatorVelocity(double speed) {}
+
   public default void setRotatorAngle(double angle) {}
 
   public default void setSuckerVelocity(double speed) {}

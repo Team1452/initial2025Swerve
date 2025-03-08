@@ -22,7 +22,7 @@ public class ElevatorConstants {
     0, // D
     0.06 // F
   };
-  public static final double kShoulderOffset = 0.6595;
+  public static final double kShoulderOffset = 0.034;
   public static final double shoulderLength = 19.5;
   public static final double maxHeight = 43;
   public static final double intakeHeight = 10;

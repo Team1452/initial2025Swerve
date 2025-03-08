@@ -1,6 +1,5 @@
 package frc.robot.subsystems.intake;
 
-import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
@@ -8,6 +7,7 @@ import org.littletonrobotics.junction.Logger;
 public class Intake extends SubsystemBase {
   // The hardware interface for the intake subsystem.
   private final IntakeIO io;
+  private double intakeRAngle = IntakeConstants.intakeStartUpAngle;
 
   private final IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
 
@@ -19,11 +19,13 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
+    io.setRotatorAngle(intakeRAngle);
     Logger.processInputs("Intake", inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
     Logger.recordOutput("Intake/IntakeOpen", inputs.intakeOpen);
     Logger.recordOutput("Intake/rotatorCurrent", inputs.rotatorCurrent);
     Logger.recordOutput("Intake/suckerSpeed", inputs.suckerSpeed);
+    Logger.recordOutput("Intake/RequestedAngle", intakeRAngle);
   }
 
   /** Spins the sucker roller using the a configured suck speed. */
@@ -53,11 +55,11 @@ public class Intake extends SubsystemBase {
   }
 
   public void setRotatorAngle(double angle) {
-    io.setRotatorAngle(angle);
+    intakeRAngle = angle;
   }
 
   public boolean getRotatorStopForward() {
-    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > IntakeConstants.intakeLevelOneAngle;
+    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > IntakeConstants.intakeLevelOneAngle - 1;
   }
 
   public boolean getRotatorStopBack() {

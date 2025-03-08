@@ -55,7 +55,11 @@ public class IntakeIOSpark implements IntakeIO {
     SparkUtil.tryUntilOk(
         m_rotator,
         5,
-        () -> m_rotator.getEncoder().setPosition(IntakeConstants.intakeStartUpAngle)); // Set the encoder to 0 on startup.
+        () ->
+            m_rotator
+                .getEncoder()
+                .setPosition(
+                    IntakeConstants.intakeStartUpAngle)); // Set the encoder to 0 on startup.
     rotatorPID = m_rotator.getClosedLoopController();
   }
 
@@ -63,6 +67,7 @@ public class IntakeIOSpark implements IntakeIO {
   public void setRotatorVelocity(double speed) {
     m_rotator.set(speed);
   }
+
   @Override
   public void setRotatorAngle(double angle) {
     rotatorPID.setReference(angle, ControlType.kPosition);
