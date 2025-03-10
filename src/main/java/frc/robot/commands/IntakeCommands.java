@@ -2,52 +2,51 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.elevator.Elevator;
-import frc.robot.subsystems.elevator.ElevatorConstants;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.intake.Intake;
-import java.util.function.BooleanSupplier;
+import frc.robot.subsystems.intake.IntakeConstants;
 
 public class IntakeCommands {
   private IntakeCommands() {}
 
-  static boolean hasCoral;
-
-  public static Command rotateOut(Intake intake) {
+  public static Command suckAndHold(Intake intake) {
     return Commands.sequence(
-        Commands.runOnce(intake::rotateOutIntake, intake),
-        Commands.waitUntil(intake::getRotatorStopForward),
-        Commands.print("Limit!"),
-        Commands.runOnce(intake::stopIntake, intake));
-  }
-
-  public static Command runIntakeRoutine(
-      BooleanSupplier interrupt, Intake intake, Elevator elevator) {
-    return Commands.sequence(
-        Commands.runOnce(intake::suckSucker, intake),
-        Commands.runOnce(intake::rotateOutIntake, intake),
-        Commands.waitUntil(intake::getRotatorStopForward),
-        Commands.runOnce(intake::stopIntake, intake),
-        Commands.waitUntil(interrupt).withDeadline(Commands.waitUntil(intake::getSuckerStop)),
-        Commands.runOnce(intake::stopSucker, intake),
-        Commands.runOnce(
-            () -> {
-              if (elevator.getHeight() < ElevatorConstants.intakeHeight) {
-                elevator.setRHeight(ElevatorConstants.intakeHeight + 2);
-              }
-              intake.rotateInIntake(); // Once we have a coral, start going back in.
-              intake.spinSucker(
-                  0.1); // Spin the sucker slightly to keep the coral during rotation in.
-            },
-            intake),
-        Commands.waitUntil(intake::getRotatorStopBack), // Wait until it's in the handoff position
-        Commands.runOnce(intake::stopIntake, intake),
-        Commands.runOnce(intake::stopSucker, intake));
-  }
-
-  public static Command fullIntakeHandOff(Intake intake, Elevator elevator) {
-    return Commands.sequence(
-        runIntakeRoutine(() -> false, intake, elevator), // Pick up a coral
-        ElevatorCommands.pickUpCoralFromIntake(elevator, intake) // And handoff to the elevator.
+        new InstantCommand(intake::suckSucker, intake), // start sucking
+        new InstantCommand(() -> intake.setSlopState(true), intake), // allow "wiggle" of intake
+        Commands.waitUntil(intake::getSuckerGo), // wait until sucking is going
+        Commands.waitUntil(
+            intake::getSuckerStop), // after we know that we've started up, wait until we've stopped
+        // (coral intake)
+        new InstantCommand(
+            () -> intake.setSlopState(false), intake), // stop allowing "wiggle" of intake
+        new InstantCommand(intake::slightSuck, intake) // tension the coral in just a little.
         );
+  }
+
+  public static Command spitOut(Intake intake, boolean bubble) {
+    return Commands.sequence(
+        new InstantCommand(intake::spitSucker, intake), // Spit it out
+        Commands.waitSeconds(
+            bubble ? 0.1 : 0.5), // for half a second (or in bubbleUp mode, for a very short time)
+        new InstantCommand(intake::stopSucker, intake) // quit it.
+        );
+  }
+
+  public static Command intakeCoralAndStow(Intake intake) {
+    return Commands.sequence(
+        new InstantCommand(() -> intake.setIntakeAngle(IntakeConstants.intakeIntakeAngle), intake),
+        suckAndHold(intake),
+        new InstantCommand(
+            () -> intake.setIntakeAngle(IntakeConstants.intakeHandOffAngle), intake));
+  }
+
+  public static Command scoreL1(Intake intake) {
+    return Commands.sequence(
+        new InstantCommand(
+            () -> intake.setIntakeAngle(IntakeConstants.intakeLevelOneAngle), intake),
+        Commands.waitUntil(intake::nearRPosition),
+        spitOut(intake, false),
+        new InstantCommand(
+            () -> intake.setIntakeAngle(IntakeConstants.intakeStartUpAngle), intake));
   }
 }

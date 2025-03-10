@@ -38,7 +38,7 @@ public class IntakeIOSpark implements IntakeIO {
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .outputRange(-0.5, 0.5)
         .positionWrappingEnabled(false);
-    suckerConfig.inverted(IntakeConstants.reversedSucker).idleMode(IdleMode.kCoast);
+    suckerConfig.inverted(IntakeConstants.reversedSucker).idleMode(IdleMode.kBrake);
     SparkUtil.tryUntilOk(
         m_rotator,
         5,
@@ -67,6 +67,11 @@ public class IntakeIOSpark implements IntakeIO {
   @Override
   public void setRotatorVelocity(double speed) {
     m_rotator.set(speed);
+  }
+
+  @Override
+  public void disableVoltage() {
+    m_rotator.setVoltage(0);
   }
 
   @Override

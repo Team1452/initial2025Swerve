@@ -1,6 +1,6 @@
 package frc.robot.subsystems.intake;
 
-import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -20,25 +20,40 @@ public class Intake extends SubsystemBase {
   public void periodic() {
     // Update sensor inputs from the hardware and log them.
     io.updateInputs(inputs);
-    if (!slopState) {
-      io.setRotatorAngle(intakeRAngle);
+    if (slopState) {
+      io.disableVoltage();
+    } else {
+      io.setRotatorAngle(MathUtil.clamp(intakeRAngle, 0, IntakeConstants.intakeIntakeAngle));
     }
     Logger.processInputs("Intake", inputs);
     Logger.recordOutput("Intake/IntakeAngle", inputs.intakeAngle);
     Logger.recordOutput("Intake/IntakeOpen", getIntakeOpen());
-    Logger.recordOutput("Intake/rotatorCurrent", inputs.rotatorCurrent);
     Logger.recordOutput("Intake/suckerSpeed", inputs.suckerSpeed);
     Logger.recordOutput("Intake/RequestedAngle", intakeRAngle);
   }
 
-  /** Spins the sucker roller using the a configured suck speed. */
-  public void spinSucker(boolean forward) {
-    io.setSuckerVelocity(
-        forward ? IntakeConstants.intakeSuckSpeed : -IntakeConstants.intakeSuckSpeed);
+  public boolean nearRPosition() {
+    return MathUtil.isNear(intakeRAngle, inputs.intakeAngle, 0.01);
   }
 
-  public void spinSucker(double speed) {
-    io.setSuckerVelocity(speed);
+  public double getIntakeAngle() {
+    return inputs.intakeAngle;
+  }
+
+  public double getRAngle() {
+    return intakeRAngle;
+  }
+
+  public boolean getRIntakeOpen() {
+    return intakeRAngle > IntakeConstants.intakeStartUpAngle;
+  }
+
+  public boolean getIntakeOpen() {
+    return inputs.intakeAngle > IntakeConstants.intakeStartUpAngle;
+  }
+
+  public void slightSuck() {
+    io.setSuckerVelocity(0.05);
   }
 
   public void setSlopState(boolean state) {
@@ -46,64 +61,30 @@ public class Intake extends SubsystemBase {
   }
 
   public void suckSucker() {
-    io.setSuckerVelocity(0.4);
+    io.setSuckerVelocity(IntakeConstants.intakeSuckSpeed);
+  }
+
+  public void spitSucker() {
+    io.setSuckerVelocity(-IntakeConstants.intakeSuckSpeed);
   }
 
   public void stopSucker() {
     io.setSuckerVelocity(0);
   }
 
-  public double getSuckerCurrent() {
-    return inputs.suckerCurrent;
+  public boolean getSuckerGo() {
+    return inputs.suckerSpeed > 10;
   }
 
   public boolean getSuckerStop() {
     return inputs.suckerSpeed < 1;
   }
 
-  public void setRotatorAngle(double angle) {
+  public void setIntakeAngle(double angle) {
     intakeRAngle = angle;
   }
 
   public void adjustRotatorAngle(double angle) {
     intakeRAngle += angle;
-  }
-
-  public boolean getRotatorStopForward() {
-    return inputs.rotatorSpeed < 10 && inputs.intakeAngle > IntakeConstants.intakeLevelOneAngle - 1;
-  }
-
-  public boolean getRotatorStopBack() {
-    return inputs.rotatorSpeed < 10 && inputs.intakeAngle < IntakeConstants.intakeStartUpAngle;
-  }
-
-  public double getRotatorCurrent() {
-    return inputs.rotatorCurrent;
-  }
-
-  public void rotateOutIntake() {
-    io.setRotatorVelocity(IntakeConstants.intakeRotateOutSpeed);
-  }
-
-  public void rotateInIntake() {
-    io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
-  }
-
-  public void rotateInDead() {
-    io.setRotatorVelocity(IntakeConstants.intakeRotateInSpeed);
-    Commands.waitSeconds(0.5);
-    stopIntake();
-  }
-
-  public void stopIntake() {
-    io.setRotatorVelocity(0);
-  }
-
-  public double getIntakeAngle() {
-    return inputs.intakeAngle;
-  }
-
-  public boolean getIntakeOpen() {
-    return intakeRAngle >= IntakeConstants.intakeStartUpAngle;
   }
 }

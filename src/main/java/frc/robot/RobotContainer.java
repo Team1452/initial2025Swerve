@@ -21,8 +21,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -33,8 +31,10 @@ import frc.robot.commands.AlignToCoral;
 import frc.robot.commands.AlignToReef;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorCommands;
-import frc.robot.commands.IntakeCommandClosedLoop;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.MoveToReef;
+import frc.robot.commands.MultiCommands;
+import frc.robot.commands.ShoulderCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -43,10 +43,13 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalons;
 import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.elevator.ElevatorIOSpark;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.intake.IntakeIOSpark;
+import frc.robot.subsystems.shoulder.Shoulder;
+import frc.robot.subsystems.shoulder.ShoulderIOSpark;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
@@ -66,7 +69,7 @@ public class RobotContainer {
   private final Vision vision;
   private final Intake intake;
   private final Elevator elevator;
-  private Trigger eLimitSwitchTrigger;
+  private final Shoulder shoulder;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -143,8 +146,8 @@ public class RobotContainer {
     }
 
     intake = new Intake(new IntakeIOSpark());
-    elevator = new Elevator(new ElevatorIOSpark(), intake::getIntakeOpen);
-
+    elevator = new Elevator(new ElevatorIOSpark());
+    shoulder = new Shoulder(new ShoulderIOSpark());
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
     /*
@@ -167,25 +170,56 @@ public class RobotContainer {
     autoChooser.addDefaultOption("Taxi back", new PathPlannerAuto("LeaveAuto"));
     autoChooser.addOption("Middle Auto", new PathPlannerAuto("MiddleAuto"));
 
-    NamedCommands.registerCommand(
-        "PlaceOnTier4", ElevatorCommands.placeOnTier(4, elevator, intake));
-
     NamedCommands.registerCommand("AlignToReefTag", new AlignToReef(drive, vision));
 
     NamedCommands.registerCommand("MoveToReef", new MoveToReef(drive, vision));
 
-    eLimitSwitchTrigger = new Trigger(elevator.eLimitSwitch());
-    eLimitSwitchTrigger.onTrue(new InstantCommand(elevator::resetEncoder));
     // Configure the button bindings
     configureButtonBindings();
+    configureSubsystemLogic();
   }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
+  private void configureSubsystemLogic() {
+    Trigger elevatorLimitSwtichTrigger = new Trigger(() -> elevator.eLimitSwitch());
+
+    // if the shoulder is down, and the ACTUAL HEIGHT of the elevator is too low, then we need to
+    // move the shoulder up.
+    Trigger shoulderCrashTrigger =
+        new Trigger(
+            () ->
+                shoulder.getAngle() < 1 && elevator.getHeight() < ElevatorConstants.shoulderLength);
+
+    // If the REQUESTED HEIGHT of the elevator is lower than a height where it would hit the intake,
+    // then we need to move the intake out of the way (if its ACTUALLY IN)
+    Trigger elevatorLoweringTrigger =
+        new Trigger(
+            () ->
+                elevator.getRHeight() < ElevatorConstants.intakeHeight && !intake.getIntakeOpen());
+
+    // If the REQUESTED ANGLE of the intake is in, and the ACTUAL HEIGHT of the elevator is too low,
+    // then we need to move the elevator up out of the way.
+    Trigger elevatorUpTrigger =
+        new Trigger(
+            () ->
+                elevator.getHeight() < ElevatorConstants.intakeHeight
+                    && !intake.getRIntakeOpen()); // for shoulder UP cases
+
+    shoulderCrashTrigger.onTrue(
+        new InstantCommand(
+            () -> shoulder.setRAngle(0.25),
+            shoulder)); // move the shoulder straight up to avoid crashing into the robot.
+    elevatorLoweringTrigger.onTrue(
+        new InstantCommand(
+            () -> intake.setIntakeAngle(IntakeConstants.intakeStartUpAngle + 1),
+            intake)); // Move the intake to a safe position.
+    elevatorUpTrigger.onTrue(
+        new InstantCommand(
+            () -> elevator.setRHeight(ElevatorConstants.intakeHeight + 2),
+            elevator)); // Move the elevator up out of the way.
+    elevatorLimitSwtichTrigger.onTrue(
+        new InstantCommand(elevator::resetEncoder)); // reset the encoder.
+  }
+
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -202,41 +236,27 @@ public class RobotContainer {
             new AlignToCoral(
                 drive, vision, 2, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
     // Intake and handoff on bumper press.
-    fightBox.button(3).onTrue(ElevatorCommands.goToTier(1, elevator, intake));
-    fightBox.button(4).onTrue(ElevatorCommands.goToTier(2, elevator, intake));
-    fightBox.button(6).onTrue(ElevatorCommands.goToTier(3, elevator, intake));
-    fightBox.button(5).onTrue(ElevatorCommands.goToTier(4, elevator, intake));
-    fightBox.pov(0).onTrue(ElevatorCommands.place(elevator));
-    fightBox
-        .pov(90)
-        .onTrue(
-            new InstantCommand(
-                () -> {
-                  elevator.setRAngle(0.75);
-                },
-                elevator));
+    fightBox.button(3).onTrue(ElevatorCommands.goToTier(elevator, 1));
+    fightBox.button(4).onTrue(ElevatorCommands.goToTier(elevator, 2));
+    fightBox.button(6).onTrue(ElevatorCommands.goToTier(elevator, 3));
+    fightBox.button(5).onTrue(ElevatorCommands.goToTier(elevator, 4));
+    fightBox.pov(0).onTrue(ShoulderCommands.place(shoulder));
+    fightBox.pov(90).onTrue(ShoulderCommands.moveShoulderTo(shoulder, 0.75));
 
     // controller.leftBumper().onTrue (IntakeCommands.runIntakeRoutine(intake));
     // Score on right bumper
-    controller
-        .a()
-        .onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeHandOffAngle));
-    controller
-        .leftBumper()
-        .onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeLevelOneAngle));
-    controller
-        .rightBumper()
-        .onTrue(IntakeCommandClosedLoop.rotateTo(intake, IntakeConstants.intakeIntakeAngle));
-    // Reset gyro to 0° when B button is pressed
-    /*
+
+    controller.a().onTrue(IntakeCommands.scoreL1(intake));
+    controller.rightBumper().onTrue(MultiCommands.handOff(intake, elevator, shoulder));
+    controller.leftBumper().onTrue(IntakeCommands.intakeCoralAndStow(intake));
+
+    controller.rightTrigger().whileTrue(Commands.run(() -> intake.adjustRotatorAngle(0.5), intake));
+    controller.leftTrigger().whileTrue(Commands.run(() -> intake.adjustRotatorAngle(-0.5), intake));
+
     controller.pov(0).whileTrue(Commands.run(() -> elevator.adjustRHeight(0.5), elevator));
     controller.pov(180).whileTrue(Commands.run(() -> elevator.adjustRHeight(-0.5), elevator));
-    */
-    controller.pov(0).whileTrue(Commands.run(() -> intake.adjustRotatorAngle(0.5), intake));
-    controller.pov(180).whileTrue(Commands.run(() -> intake.adjustRotatorAngle(-0.5), intake));
-
-    controller.pov(90).whileTrue(Commands.run(() -> elevator.adjustRAngle(0.008), elevator));
-    controller.pov(270).whileTrue(Commands.run(() -> elevator.adjustRAngle(-0.008), elevator));
+    controller.pov(90).whileTrue(Commands.run(() -> shoulder.adjustRAngle(0.008), shoulder));
+    controller.pov(270).whileTrue(Commands.run(() -> shoulder.adjustRAngle(-0.008), shoulder));
 
     controller
         .b()

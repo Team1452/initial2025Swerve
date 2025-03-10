@@ -6,16 +6,10 @@ public interface ElevatorIO {
   @AutoLog
   public static class ElevatorIOInputs {
     public double height = 0;
-    public double internalAngle = 0;
-    public double shoulderAngle = 0;
     public boolean elevatorlimitSwtich = false;
   }
 
   public default void setHeight(double setpoint) {}
-
-  public default void setShoulderAngle(double setpoint) {}
-
-  public default void rotateShoulder(double setpoint) {}
 
   public default void updateInputs(ElevatorIOInputs inputs) {}
 

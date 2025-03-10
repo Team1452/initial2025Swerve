@@ -64,7 +64,7 @@ public class ReefAuto extends SequentialCommandGroup {
         new MoveToReef(drive, vision)
             .until(() -> !vision.getMoveReady()), // TODO: add move offset to align branch
         // Spit Coral
-        IntakeCommandClosedLoop.spitOut(intake).withTimeout(0.5) // Spit out coral
+        IntakeCommands.spitOut(intake, false).withTimeout(0.5) // Spit out coral
         );
   }
 }

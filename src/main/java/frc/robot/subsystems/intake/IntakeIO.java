@@ -19,5 +19,7 @@ public interface IntakeIO {
 
   public default void setSuckerVelocity(double speed) {}
 
+  public default void disableVoltage() {}
+
   public default void updateInputs(IntakeIOInputs inputs) {}
 }
